@@ -1,9 +1,13 @@
-use axum::{response::IntoResponse, routing::get, Router};
+use axum::{response::Html, routing::get, Router};
 use clap::Parser;
-use std::net::{IpAddr, Ipv6Addr, SocketAddr};
 use std::str::FromStr;
+use std::{fs, io::Read};
+use std::{
+    net::{IpAddr, Ipv6Addr, SocketAddr},
+    path::PathBuf,
+};
 use tower::ServiceBuilder;
-use tower_http::trace::TraceLayer;
+use tower_http::{services::ServeDir, trace::TraceLayer};
 
 #[derive(Parser, Debug)]
 #[clap(name = "backend", about = "backend for msj website")]
@@ -31,9 +35,7 @@ async fn main() {
 
     tracing_subscriber::fmt::init();
 
-    let app = Router::new()
-        .route("/", get(hello))
-        .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()));
+    let app = app();
 
     let sock_addr = SocketAddr::from((
         IpAddr::from_str(opts.addr.as_str()).unwrap_or(IpAddr::V6(Ipv6Addr::LOCALHOST)),
@@ -52,6 +54,20 @@ async fn main() {
     .expect("server failed to start")
 }
 
-async fn hello() -> impl IntoResponse {
-    "hello, world!"
+fn app() -> Router {
+    let assets_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("assets");
+    let static_service = ServeDir::new(assets_dir);
+    Router::new()
+        .route("/", get(hello))
+        .nest_service("/assets", static_service)
+        .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
+}
+
+async fn hello() -> Html<String> {
+    let mut s = String::new();
+    fs::File::open("static/index.html")
+        .expect("file not found")
+        .read_to_string(&mut s)
+        .expect("failed to read file");
+    Html::from(s)
 }
