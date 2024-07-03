@@ -1,4 +1,9 @@
-use axum::{response::Html, routing::get, Router};
+use axum::{
+    response::{Html, IntoResponse},
+    routing::get,
+    Router,
+};
+use backend::Template;
 use clap::Parser;
 use std::str::FromStr;
 use std::{fs, io::Read};
@@ -61,21 +66,17 @@ fn app() -> Router {
     let css_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("css");
     let css_service = ServeDir::new(css_dir);
     Router::new()
-        .route("/", get(hello))
+        .route("/", get(index))
         .nest_service("/assets", asset_service)
         .nest_service("/css", css_service)
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
 }
 
-async fn hello() -> Html<String> {
+async fn index() -> impl IntoResponse {
     let index_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("html")
         .join("header_template.html");
+    let template = Template::new(index_path);
 
-    let mut s = String::new();
-    fs::File::open(index_path)
-        .expect("file not found")
-        .read_to_string(&mut s)
-        .expect("failed to read file");
-    Html::from(s)
+    template.render(vec!["Hello, world!".to_string()])
 }

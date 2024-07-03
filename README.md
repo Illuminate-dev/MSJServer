@@ -2,5 +2,5 @@
 
 ## Development Environment
 
-`cargo install trunk` <br />
-`rustup target add wasm32-unknown-unknown`
+`cargo install cargo-watch` <br />
+`cargo watch -- cargo run`
