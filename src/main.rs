@@ -56,16 +56,24 @@ async fn main() {
 
 fn app() -> Router {
     let assets_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("assets");
-    let static_service = ServeDir::new(assets_dir);
+    let asset_service = ServeDir::new(assets_dir);
+
+    let css_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("css");
+    let css_service = ServeDir::new(css_dir);
     Router::new()
         .route("/", get(hello))
-        .nest_service("/assets", static_service)
+        .nest_service("/assets", asset_service)
+        .nest_service("/css", css_service)
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
 }
 
 async fn hello() -> Html<String> {
+    let index_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("html")
+        .join("header_template.html");
+
     let mut s = String::new();
-    fs::File::open("static/index.html")
+    fs::File::open(index_path)
         .expect("file not found")
         .read_to_string(&mut s)
         .expect("failed to read file");

@@ -1,0 +1,62 @@
+/* Tangerine regular */
+@font-face {
+  font-family: "Tangerine";
+  src: url(../assets/Tangerine-Regular.ttf);
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Tangerine bold */
+@font-face {
+  font-family: "Tangerine";
+  src: url(../assets/Tangerine-Bold.ttf);
+  font-weight: bold;
+  font-style: normal;
+}
+
+body {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+li {
+  list-style: none;
+}
+
+/* START HEADER */
+
+h1 {
+  max-width: fit-content;
+  margin: 0 auto;
+  font-family: "Tangerine", "Times New Roman", Times, serif;
+  font-size: 76px;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+}
+
+.left {
+  width: 30%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.nav-link {
+  font-size: 18px;
+  font-weight: bold;
+  transition: all ease-in-out 0.2s;
+}
+
+.nav-link:hover {
+  border-bottom: 5px solid black;
+}
+
+/* END HEADER */
