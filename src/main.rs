@@ -14,6 +14,10 @@ use std::{
 use tower::ServiceBuilder;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 
+const HEADER_TEMPLATE: Template<'static> =
+    Template::new(include_str!("../html/header_template.html"));
+const INVALID_PAGE_TEMPLATE: Template<'static> = Template::new(include_str!("../html/404.html"));
+
 #[derive(Parser, Debug)]
 #[clap(name = "backend", about = "backend for msj website")]
 struct Options {
@@ -67,16 +71,16 @@ fn app() -> Router {
     let css_service = ServeDir::new(css_dir);
     Router::new()
         .route("/", get(index))
+        .fallback(invalid_page)
         .nest_service("/assets", asset_service)
         .nest_service("/css", css_service)
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
 }
 
 async fn index() -> impl IntoResponse {
-    let index_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("html")
-        .join("header_template.html");
-    let template = Template::new(index_path);
+    HEADER_TEMPLATE.render(vec!["Hello, world!".to_string()])
+}
 
-    template.render(vec!["Hello, world!".to_string()])
+async fn invalid_page() -> impl IntoResponse {
+    HEADER_TEMPLATE.render(vec![INVALID_PAGE_TEMPLATE.into()])
 }

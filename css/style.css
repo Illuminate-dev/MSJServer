@@ -14,6 +14,30 @@
   font-style: normal;
 }
 
+/* Roboto regular */
+@font-face {
+  font-family: "Roboto";
+  src: url(../assets/Roboto-Regular.ttf);
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Roboto bold */
+@font-face {
+  font-family: "Roboto";
+  src: url(../assets/Roboto-Bold.ttf);
+  font-weight: bold;
+  font-style: normal;
+}
+
+/* Roboto light */
+@font-face {
+  font-family: "Roboto";
+  src: url(../assets/Roboto-Light.ttf);
+  font-weight: lighter;
+  font-style: normal;
+}
+
 body {
   max-width: 1200px;
   margin-left: auto;
@@ -52,7 +76,7 @@ nav {
 .nav-link {
   font-size: 18px;
   font-weight: bold;
-  transition: all ease-in-out 0.2s;
+  transition: border-bottom ease-in-out 0.2s;
 }
 
 .nav-link:hover {
@@ -60,3 +84,38 @@ nav {
 }
 
 /* END HEADER */
+
+/* START 404 */
+
+#p404 > * {
+  max-width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#p404 {
+  font-family: "Roboto", "Arial", sans-serif;
+  max-width: fit-content;
+  margin: auto;
+}
+
+#p404 h2 {
+  font-size: 36px;
+}
+
+#p404 a.button {
+  display: block;
+  background-color: black;
+  color: white;
+  padding: 5px 20px;
+  font-size: 22px;
+  transition: all ease-in-out 0.1s;
+  border: 2px solid black;
+}
+
+#p404 a.button:hover {
+  background-color: white;
+  color: black;
+}
+
+/* END 404 */
