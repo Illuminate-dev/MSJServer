@@ -140,6 +140,12 @@ nav {
   text-decoration: underline;
 }
 
+#enter .error {
+  max-width: fit-content;
+  margin: 5px auto;
+  color: red;
+}
+
 #enter form {
   width: 100%;
   display: flex;

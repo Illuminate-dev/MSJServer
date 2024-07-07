@@ -1,26 +1,20 @@
 use axum::{
-    extract::{Query, State},
-    http::StatusCode,
-    response::{IntoResponse, Redirect},
+    response::Html,
     routing::{get, post},
-    Form, Router,
+    Router,
 };
-use axum_extra::extract::{cookie::Cookie, CookieJar};
-use backend::*;
+use backend::{
+    enter::{get_enter, post_enter},
+    *,
+};
 use clap::Parser;
-use serde::Deserialize;
+use std::str::FromStr;
 use std::{
-    fs,
     net::{IpAddr, Ipv6Addr, SocketAddr},
     path::PathBuf,
 };
-use std::{
-    str::FromStr,
-    sync::{Arc, Mutex},
-};
 use tower::ServiceBuilder;
 use tower_http::{services::ServeDir, trace::TraceLayer};
-use uuid::Uuid;
 
 #[derive(Parser, Debug)]
 #[clap(name = "backend", about = "backend for msj website")]
@@ -67,57 +61,6 @@ async fn main() {
     .expect("server failed to start")
 }
 
-#[derive(Default, Clone)]
-struct ServerState {
-    sessions: Arc<Mutex<Vec<Session>>>,
-    accounts: Arc<Mutex<Vec<Account>>>,
-}
-
-impl ServerState {
-    pub fn new() -> Self {
-        let data_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("data");
-        fs::create_dir_all(data_dir.clone()).expect("failed to create data directory");
-        let accounts_file = data_dir.join("accounts.dat");
-        if accounts_file.exists() {
-            let accounts = bincode::deserialize(
-                fs::read(accounts_file)
-                    .expect("failed to read accounts file")
-                    .as_slice(),
-            )
-            .expect("failed to deserialize accounts file");
-            Self {
-                accounts: Arc::new(Mutex::new(accounts)),
-                ..Default::default()
-            }
-        } else {
-            fs::write(
-                accounts_file,
-                bincode::serialize::<Vec<Account>>(&vec![]).expect("failed to write accounts file"),
-            )
-            .expect("failed to write accounts file");
-            Self::default()
-        }
-    }
-
-    fn write_accounts(&self) -> Result<(), std::io::Error> {
-        // accounts file should exist
-
-        let accounts_file = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("data")
-            .join("accounts.dat");
-        fs::write(
-            accounts_file,
-            bincode::serialize(
-                self.accounts
-                    .lock()
-                    .expect("failed to lock mutex")
-                    .as_slice(),
-            )
-            .expect("failed to serialize accounts"),
-        )
-    }
-}
-
 fn app() -> Router {
     let assets_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("assets");
     let asset_service = ServeDir::new(assets_dir);
@@ -135,140 +78,10 @@ fn app() -> Router {
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
 }
 
-async fn index() -> impl IntoResponse {
-    HEADER_TEMPLATE.render(vec!["Hello, world!".to_string()])
+async fn index() -> Html<String> {
+    HEADER_TEMPLATE.render_html(vec!["Hello, world!".to_string()])
 }
 
-async fn invalid_page() -> impl IntoResponse {
-    HEADER_TEMPLATE.render(vec![INVALID_PAGE_TEMPLATE.into()])
-}
-
-#[derive(Deserialize)]
-struct EnterPageQuery {
-    #[serde(default)]
-    signup: Option<bool>,
-    #[serde(default)]
-    login: Option<bool>,
-}
-
-async fn get_enter(
-    State(state): State<ServerState>,
-    jar: CookieJar,
-    query: Option<Query<EnterPageQuery>>,
-) -> impl IntoResponse {
-    let sessions = state.sessions.lock().expect("failed to lock mutex");
-
-    if jar.get(SESSION_COOKIE_NAME).is_some()
-        && sessions
-            .iter()
-            .any(|s| s.id == jar.get(SESSION_COOKIE_NAME).unwrap().value())
-    {
-        return HEADER_TEMPLATE.render(vec![ALREADY_LOGGED_IN_PAGE_TEMPLATE.into()]);
-    }
-
-    if let Some(query) = query {
-        match (query.signup, query.login) {
-            (Some(true), _) => HEADER_TEMPLATE.render(vec![SIGNUP_PAGE_TEMPLATE.into()]),
-            _ => HEADER_TEMPLATE.render(vec![LOGIN_PAGE_TEMPLATE.into()]),
-        }
-    } else {
-        HEADER_TEMPLATE.render(vec![LOGIN_PAGE_TEMPLATE.into()])
-    }
-}
-
-#[derive(Deserialize)]
-struct EnterForm {
-    username: Option<String>,
-    email: String,
-    password: String,
-}
-
-async fn post_enter(
-    State(state): State<ServerState>,
-    query: Query<EnterPageQuery>,
-    jar: CookieJar,
-    Form(form): Form<EnterForm>,
-) -> Result<(CookieJar, Redirect), StatusCode> {
-    let sessions = state.sessions.lock().expect("failed to lock mutex");
-    if jar.get(SESSION_COOKIE_NAME).is_some()
-        && sessions
-            .iter()
-            .any(|s| s.id == jar.get(SESSION_COOKIE_NAME).unwrap().value())
-    {
-        // already logged in
-        return Err(StatusCode::PRECONDITION_FAILED);
-    }
-
-    drop(sessions);
-
-    match (query.signup, query.login) {
-        (Some(true), Some(true)) => Err(StatusCode::BAD_REQUEST),
-        (Some(true), _) => create_account(state, form, jar),
-        (_, Some(true)) => login_account(state, form, jar),
-        _ => Err(StatusCode::BAD_REQUEST),
-    }
-}
-
-fn create_account(
-    state: ServerState,
-    form: EnterForm,
-    jar: CookieJar,
-) -> Result<(CookieJar, Redirect), StatusCode> {
-    if form.username.is_none() {
-        return Err(StatusCode::BAD_REQUEST);
-    }
-
-    let mut accounts = state.accounts.lock().expect("failed to lock mutex");
-    if accounts
-        .iter()
-        .any(|a| &a.username == form.username.as_ref().unwrap() || a.email == form.email)
-    {
-        return Err(StatusCode::BAD_REQUEST);
-    }
-
-    accounts.push(Account::new(
-        form.username.as_ref().unwrap().clone(),
-        form.email,
-        form.password,
-    ));
-
-    drop(accounts);
-
-    state.write_accounts().expect("failed to write accounts");
-
-    let mut sessions = state.sessions.lock().expect("failed to lock mutex");
-
-    let id = Uuid::new_v4().to_string();
-
-    sessions.push(Session::new(id.clone(), form.username.unwrap()));
-
-    Ok((
-        jar.add(Cookie::new(SESSION_COOKIE_NAME, id)),
-        Redirect::to("/"),
-    ))
-}
-
-fn login_account(
-    state: ServerState,
-    form: EnterForm,
-    jar: CookieJar,
-) -> Result<(CookieJar, Redirect), StatusCode> {
-    let accounts = state.accounts.lock().expect("failed to lock mutex");
-    if let Some(account) = accounts
-        .iter()
-        .find(|a| a.email == form.email && a.password_hash == get_sha256(&form.password))
-    {
-        let mut sessions = state.sessions.lock().expect("failed to lock mutex");
-
-        let id = Uuid::new_v4().to_string();
-
-        sessions.push(Session::new(id.clone(), account.username.clone()));
-
-        Ok((
-            jar.add(Cookie::new(SESSION_COOKIE_NAME, id)),
-            Redirect::to("/"),
-        ))
-    } else {
-        Err(StatusCode::UNAUTHORIZED)
-    }
+async fn invalid_page() -> Html<String> {
+    HEADER_TEMPLATE.render_html(vec![INVALID_PAGE_TEMPLATE.into()])
 }
