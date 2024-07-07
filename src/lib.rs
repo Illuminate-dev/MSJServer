@@ -1,4 +1,6 @@
 use axum::response::{Html, IntoResponse};
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 
 pub const SESSION_COOKIE_NAME: &str = "msj_session";
 
@@ -44,11 +46,11 @@ impl<'a> From<Template<'a>> for &'a str {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Account {
     pub username: String,
     pub email: String,
-    pub password: String,
+    pub password_hash: String,
 }
 
 impl Account {
@@ -56,7 +58,7 @@ impl Account {
         Self {
             username,
             email,
-            password,
+            password_hash: get_sha256(&password),
         }
     }
 }
@@ -73,4 +75,14 @@ impl Session {
             account_username,
         }
     }
+}
+
+pub fn get_sha256(password: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(password);
+    let password_hash = hasher.finalize();
+    password_hash.iter().fold(String::new(), |mut acc, byte| {
+        acc.push_str(&format!("{:02x}", byte));
+        acc
+    })
 }

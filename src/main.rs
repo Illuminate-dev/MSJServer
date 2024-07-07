@@ -10,6 +10,7 @@ use backend::*;
 use clap::Parser;
 use serde::Deserialize;
 use std::{
+    fs,
     net::{IpAddr, Ipv6Addr, SocketAddr},
     path::PathBuf,
 };
@@ -72,6 +73,51 @@ struct ServerState {
     accounts: Arc<Mutex<Vec<Account>>>,
 }
 
+impl ServerState {
+    pub fn new() -> Self {
+        let data_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("data");
+        fs::create_dir_all(data_dir.clone()).expect("failed to create data directory");
+        let accounts_file = data_dir.join("accounts.dat");
+        if accounts_file.exists() {
+            let accounts = bincode::deserialize(
+                fs::read(accounts_file)
+                    .expect("failed to read accounts file")
+                    .as_slice(),
+            )
+            .expect("failed to deserialize accounts file");
+            Self {
+                accounts: Arc::new(Mutex::new(accounts)),
+                ..Default::default()
+            }
+        } else {
+            fs::write(
+                accounts_file,
+                bincode::serialize::<Vec<Account>>(&vec![]).expect("failed to write accounts file"),
+            )
+            .expect("failed to write accounts file");
+            Self::default()
+        }
+    }
+
+    fn write_accounts(&self) -> Result<(), std::io::Error> {
+        // accounts file should exist
+
+        let accounts_file = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("data")
+            .join("accounts.dat");
+        fs::write(
+            accounts_file,
+            bincode::serialize(
+                self.accounts
+                    .lock()
+                    .expect("failed to lock mutex")
+                    .as_slice(),
+            )
+            .expect("failed to serialize accounts"),
+        )
+    }
+}
+
 fn app() -> Router {
     let assets_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("assets");
     let asset_service = ServeDir::new(assets_dir);
@@ -85,7 +131,7 @@ fn app() -> Router {
         .fallback(invalid_page)
         .nest_service("/assets", asset_service)
         .nest_service("/css", css_service)
-        .with_state(ServerState::default())
+        .with_state(ServerState::new())
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
 }
 
@@ -159,10 +205,7 @@ async fn post_enter(
         (Some(true), Some(true)) => Err(StatusCode::BAD_REQUEST),
         (Some(true), _) => create_account(state, form, jar),
         (_, Some(true)) => login_account(state, form, jar),
-        _ => {
-            println!("test");
-            Err(StatusCode::BAD_REQUEST)
-        }
+        _ => Err(StatusCode::BAD_REQUEST),
     }
 }
 
@@ -189,6 +232,10 @@ fn create_account(
         form.password,
     ));
 
+    drop(accounts);
+
+    state.write_accounts().expect("failed to write accounts");
+
     let mut sessions = state.sessions.lock().expect("failed to lock mutex");
 
     let id = Uuid::new_v4().to_string();
@@ -209,7 +256,7 @@ fn login_account(
     let accounts = state.accounts.lock().expect("failed to lock mutex");
     if let Some(account) = accounts
         .iter()
-        .find(|a| a.email == form.email && a.password == form.password)
+        .find(|a| a.email == form.email && a.password_hash == get_sha256(&form.password))
     {
         let mut sessions = state.sessions.lock().expect("failed to lock mutex");
 
