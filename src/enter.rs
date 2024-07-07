@@ -1,7 +1,7 @@
 use axum::{
     extract::{Query, State},
     http::StatusCode,
-    response::{Html, Redirect},
+    response::{Html, Redirect, Response},
     Form,
 };
 use axum_extra::extract::{cookie::Cookie, CookieJar};
@@ -10,19 +10,28 @@ use uuid::Uuid;
 
 use crate::*;
 
+// TODO: change this into enum
 #[derive(Deserialize)]
 pub struct EnterPageQuery {
     #[serde(default)]
     signup: Option<bool>,
     #[serde(default)]
     login: Option<bool>,
+    #[serde(default)]
+    logout: Option<bool>,
 }
 
 pub async fn get_enter(
     State(state): State<ServerState>,
     jar: CookieJar,
     query: Option<Query<EnterPageQuery>>,
-) -> Html<String> {
+) -> Response {
+    if let Some(query) = query.as_ref() {
+        if query.logout == Some(true) {
+            return (process_logout(jar, state), Redirect::to("/")).into_response();
+        }
+    }
+
     let sessions = state.sessions.lock().expect("failed to lock mutex");
 
     if jar.get(SESSION_COOKIE_NAME).is_some()
@@ -32,18 +41,18 @@ pub async fn get_enter(
     {
         drop(sessions);
         // kind of uneccessary to check again
-        return enter_page(jar, state, ALREADY_LOGGED_IN_PAGE_TEMPLATE, None);
+        return enter_page(jar, state, ALREADY_LOGGED_IN_PAGE_TEMPLATE, None).into_response();
     }
 
     drop(sessions);
 
     if let Some(query) = query {
         match (query.signup, query.login) {
-            (Some(true), _) => enter_page(jar, state, SIGNUP_PAGE_TEMPLATE, None),
-            _ => enter_page(jar, state, LOGIN_PAGE_TEMPLATE, None),
+            (Some(true), _) => enter_page(jar, state, SIGNUP_PAGE_TEMPLATE, None).into_response(),
+            _ => enter_page(jar, state, LOGIN_PAGE_TEMPLATE, None).into_response(),
         }
     } else {
-        enter_page(jar, state, LOGIN_PAGE_TEMPLATE, None)
+        enter_page(jar, state, LOGIN_PAGE_TEMPLATE, None).into_response()
     }
 }
 
@@ -198,4 +207,18 @@ fn login_account(
             ),
         ))
     }
+}
+
+fn process_logout(jar: CookieJar, state: ServerState) -> CookieJar {
+    let mut sessions = state.sessions.lock().expect("failed to lock mutex");
+
+    sessions.retain(|s| {
+        s.id != jar
+            .get(SESSION_COOKIE_NAME)
+            .map(|c| c.value())
+            .unwrap_or("")
+    });
+
+    drop(sessions);
+    jar.remove(Cookie::from(SESSION_COOKIE_NAME))
 }
