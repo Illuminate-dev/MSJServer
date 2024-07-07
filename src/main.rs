@@ -1,8 +1,10 @@
 use axum::{
+    extract::State,
     response::Html,
     routing::{get, post},
     Router,
 };
+use axum_extra::extract::CookieJar;
 use backend::{
     enter::{get_enter, post_enter},
     *,
@@ -78,10 +80,10 @@ fn app() -> Router {
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
 }
 
-async fn index() -> Html<String> {
-    HEADER_TEMPLATE.render_html(vec!["Hello, world!".to_string()])
+async fn index(State(state): State<ServerState>, jar: CookieJar) -> Html<String> {
+    render_with_header(jar, state, "Hello, world!".into())
 }
 
-async fn invalid_page() -> Html<String> {
-    HEADER_TEMPLATE.render_html(vec![INVALID_PAGE_TEMPLATE.into()])
+async fn invalid_page(State(state): State<ServerState>, jar: CookieJar) -> Html<String> {
+    render_with_header(jar, state, INVALID_PAGE_TEMPLATE.into())
 }

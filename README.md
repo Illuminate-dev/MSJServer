@@ -8,4 +8,5 @@
 ## TODO
 
 - add session expiration
-- add persistent users
+- migrate to using a db
+- use or write a parser for html

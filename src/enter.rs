@@ -30,21 +30,36 @@ pub async fn get_enter(
             .iter()
             .any(|s| s.id == jar.get(SESSION_COOKIE_NAME).unwrap().value())
     {
-        return HEADER_TEMPLATE.render_html(vec![ALREADY_LOGGED_IN_PAGE_TEMPLATE.into()]);
+        drop(sessions);
+        // kind of uneccessary to check again
+        return enter_page(jar, state, ALREADY_LOGGED_IN_PAGE_TEMPLATE, None);
     }
+
+    drop(sessions);
 
     if let Some(query) = query {
         match (query.signup, query.login) {
-            (Some(true), _) => HEADER_TEMPLATE.render_html(vec![SIGNUP_PAGE_TEMPLATE.into()]),
-            _ => HEADER_TEMPLATE.render_html(vec![LOGIN_PAGE_TEMPLATE.into()]),
+            (Some(true), _) => enter_page(jar, state, SIGNUP_PAGE_TEMPLATE, None),
+            _ => enter_page(jar, state, LOGIN_PAGE_TEMPLATE, None),
         }
     } else {
-        HEADER_TEMPLATE.render_html(vec![LOGIN_PAGE_TEMPLATE.into()])
+        enter_page(jar, state, LOGIN_PAGE_TEMPLATE, None)
     }
 }
 
-fn enter_page(page: Template, error: Option<&str>) -> Html<String> {
-    HEADER_TEMPLATE.render_html(vec![page.into(), error.unwrap_or("").to_string()])
+fn enter_page(
+    jar: CookieJar,
+    state: ServerState,
+    page: Template,
+    error: Option<&str>,
+) -> Html<String> {
+    render_with_header(
+        jar,
+        state,
+        (page.render(vec![error.unwrap_or("").into()]))
+            .as_str()
+            .into(),
+    )
 }
 
 #[derive(Deserialize)]
@@ -66,10 +81,11 @@ pub async fn post_enter(
             .iter()
             .any(|s| s.id == jar.get(SESSION_COOKIE_NAME).unwrap().value())
     {
+        drop(sessions);
         // already logged in
         return Err((
             StatusCode::PRECONDITION_FAILED,
-            enter_page(ALREADY_LOGGED_IN_PAGE_TEMPLATE, None),
+            enter_page(jar, state, ALREADY_LOGGED_IN_PAGE_TEMPLATE, None),
         ));
     }
 
@@ -79,6 +95,8 @@ pub async fn post_enter(
         (Some(true), Some(true)) => Err((
             StatusCode::BAD_REQUEST,
             enter_page(
+                jar,
+                state,
                 SIGNUP_PAGE_TEMPLATE,
                 Some("Cannot sign up and log in at the same time"),
             ),
@@ -87,7 +105,7 @@ pub async fn post_enter(
         (_, Some(true)) => login_account(state, form, jar),
         _ => Err((
             StatusCode::BAD_REQUEST,
-            enter_page(LOGIN_PAGE_TEMPLATE, Some("No action specified")),
+            enter_page(jar, state, LOGIN_PAGE_TEMPLATE, Some("No action specified")),
         )),
     }
 }
@@ -100,7 +118,12 @@ fn create_account(
     if form.username.is_none() {
         return Err((
             StatusCode::BAD_REQUEST,
-            enter_page(SIGNUP_PAGE_TEMPLATE, Some("No username specified")),
+            enter_page(
+                jar,
+                state,
+                SIGNUP_PAGE_TEMPLATE,
+                Some("No username specified"),
+            ),
         ));
     }
 
@@ -109,9 +132,12 @@ fn create_account(
         .iter()
         .any(|a| &a.username == form.username.as_ref().unwrap() || a.email == form.email)
     {
+        drop(accounts);
         return Err((
             StatusCode::BAD_REQUEST,
             enter_page(
+                jar,
+                state,
                 SIGNUP_PAGE_TEMPLATE,
                 Some("Account with that username/email already exists!"),
             ),
@@ -161,9 +187,15 @@ fn login_account(
             Redirect::to("/"),
         ))
     } else {
+        drop(accounts);
         Err((
             StatusCode::UNAUTHORIZED,
-            enter_page(LOGIN_PAGE_TEMPLATE, Some("Invalid email or password")),
+            enter_page(
+                jar,
+                state,
+                LOGIN_PAGE_TEMPLATE,
+                Some("Invalid email or password"),
+            ),
         ))
     }
 }
