@@ -10,24 +10,28 @@ use uuid::Uuid;
 
 use crate::*;
 
-// TODO: change this into enum
+#[derive(Deserialize, PartialEq)]
+pub enum EnterPageAction {
+    #[serde(rename = "signup")]
+    SignUp,
+    #[serde(rename = "login")]
+    LogIn,
+    #[serde(rename = "logout")]
+    LogOut,
+}
+
 #[derive(Deserialize)]
-pub struct EnterPageQuery {
-    #[serde(default)]
-    signup: Option<bool>,
-    #[serde(default)]
-    login: Option<bool>,
-    #[serde(default)]
-    logout: Option<bool>,
+pub struct EnterParams {
+    action: EnterPageAction,
 }
 
 pub async fn get_enter(
     State(state): State<ServerState>,
     jar: CookieJar,
-    query: Option<Query<EnterPageQuery>>,
+    query: Option<Query<EnterParams>>,
 ) -> Response {
-    if let Some(query) = query.as_ref() {
-        if query.logout == Some(true) {
+    if let Some(Query(q)) = query.as_ref() {
+        if q.action == EnterPageAction::LogOut {
             return (process_logout(jar, state), Redirect::to("/")).into_response();
         }
     }
@@ -46,10 +50,15 @@ pub async fn get_enter(
 
     drop(sessions);
 
-    if let Some(query) = query {
-        match (query.signup, query.login) {
-            (Some(true), _) => enter_page(jar, state, SIGNUP_PAGE_TEMPLATE, None).into_response(),
-            _ => enter_page(jar, state, LOGIN_PAGE_TEMPLATE, None).into_response(),
+    if let Some(Query(EnterParams { action: query })) = query {
+        match query {
+            EnterPageAction::SignUp => {
+                enter_page(jar, state, SIGNUP_PAGE_TEMPLATE, None).into_response()
+            }
+            EnterPageAction::LogIn => {
+                enter_page(jar, state, LOGIN_PAGE_TEMPLATE, None).into_response()
+            }
+            EnterPageAction::LogOut => unreachable!(),
         }
     } else {
         enter_page(jar, state, LOGIN_PAGE_TEMPLATE, None).into_response()
@@ -80,7 +89,7 @@ pub struct EnterForm {
 
 pub async fn post_enter(
     State(state): State<ServerState>,
-    query: Query<EnterPageQuery>,
+    query: Query<EnterParams>,
     jar: CookieJar,
     Form(form): Form<EnterForm>,
 ) -> Result<(CookieJar, Redirect), (StatusCode, impl IntoResponse)> {
@@ -100,21 +109,13 @@ pub async fn post_enter(
 
     drop(sessions);
 
-    match (query.signup, query.login) {
-        (Some(true), Some(true)) => Err((
-            StatusCode::BAD_REQUEST,
-            enter_page(
-                jar,
-                state,
-                SIGNUP_PAGE_TEMPLATE,
-                Some("Cannot sign up and log in at the same time"),
-            ),
-        )),
-        (Some(true), _) => create_account(state, form, jar),
-        (_, Some(true)) => login_account(state, form, jar),
+    let Query(EnterParams { action: query }) = query;
+    match query {
+        EnterPageAction::SignUp => create_account(state, form, jar),
+        EnterPageAction::LogIn => login_account(state, form, jar),
         _ => Err((
             StatusCode::BAD_REQUEST,
-            enter_page(jar, state, LOGIN_PAGE_TEMPLATE, Some("No action specified")),
+            enter_page(jar, state, LOGIN_PAGE_TEMPLATE, Some("no action specified")),
         )),
     }
 }

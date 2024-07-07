@@ -1,7 +1,7 @@
 <div id="enter">
   <h2>Sign Up</h2>
   <p class="error">{}</p>
-  <form method="post" action="/enter?signup=true">
+  <form method="post" action="/enter?action=signup">
     <div id="email-section">
       <label for="email">Email:</label><br />
       <input
@@ -39,5 +39,5 @@
     </div>
     <input type="submit" value="Sign Up" />
   </form>
-  <p>Already have an account? <a href="/enter?login=true">Log in!</a></p>
+  <p>Already have an account? <a href="/enter?action=login">Log in!</a></p>
 </div>

@@ -1,7 +1,7 @@
 <div id="enter">
   <h2>Log In</h2>
   <p class="error">{}</p>
-  <form method="post" action="/enter?login=true">
+  <form method="post" action="/enter?action=login">
     <div id="email-section">
       <label for="email">Email:</label><br />
       <input type="email" name="email" pattern=".+@.+\..+" required /><br />
@@ -19,5 +19,5 @@
     </div>
     <input type="submit" value="Log In" />
   </form>
-  <p>Don't have an account? <a href="/enter?signup=true">Create one!</a></p>
+  <p>Don't have an account? <a href="/enter?action=signup">Create one!</a></p>
 </div>
