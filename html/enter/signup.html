@@ -1,0 +1,42 @@
+<div id="enter">
+  <h2>Sign Up</h2>
+  <form method="post" action="/enter?signup=true">
+    <div id="email-section">
+      <label for="email">Email:</label><br />
+      <input
+        type="email"
+        name="email"
+        pattern=".+@.+\..+"
+        required
+        maxlength="30"
+      /><br />
+    </div>
+    <div id="user-section">
+      <label for="username">Username:</label><br />
+      <input
+        type="text"
+        name="username"
+        pattern="[a-zA-Z0-9]+"
+        required
+        maxlength="15"
+      /><br />
+    </div>
+    <div id="pass-section">
+      <label for="password">Password:</label><br />
+      <p>
+        Must be between 8-30 characters and contain at least 1 uppercase, 1
+        lowercase, and 1 special character.
+      </p>
+      <input
+        type="password"
+        name="password"
+        required
+        pattern='^(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*(),.?":{}|<>]).+$'
+        minlength="8"
+        maxlength="30"
+      /><br />
+    </div>
+    <input type="submit" value="Sign Up" />
+  </form>
+  <p>Already have an account? <a href="/enter?login=true">Log in!</a></p>
+</div>
