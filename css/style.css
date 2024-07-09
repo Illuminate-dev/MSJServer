@@ -193,3 +193,72 @@ nav {
 }
 
 /* END ENTER */
+
+/* START PUBLISH */
+
+#publish {
+  font-family: "Roboto", "Arial", sans-serif;
+  width: 50%;
+  margin: auto;
+}
+
+#publish h2 {
+  font-size: 28px;
+  max-width: fit-content;
+  margin: 15px auto;
+}
+
+#publish .error {
+  max-width: fit-content;
+  margin: 5px auto;
+  color: red;
+}
+
+#publish form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+#publish form div {
+  display: block;
+  width: 100%;
+  margin: 0 auto;
+}
+
+#publish input[type="text"] {
+  width: 100%;
+  margin-top: 5px;
+  padding: 5px 10px;
+  font-size: 14px;
+}
+
+#publish textarea {
+  font-family: "Roboto", "Arial", sans-serif;
+  width: 100%;
+  margin-top: 5px;
+  padding: 5px 10px;
+  font-size: 14px;
+  resize: none;
+}
+
+#publish input[type="submit"] {
+  display: block;
+  font-size: 18px;
+  background-color: white;
+  color: black;
+  border-radius: 5px;
+  padding: 5px 30px;
+  max-width: fit-content;
+  margin: 30px auto;
+  transition: all ease-in-out 0.1s;
+}
+
+#publish input[type="submit"]:hover {
+  background-color: black;
+  color: white;
+  cursor: pointer;
+}
+
+/* END PUBLISH */

@@ -6,7 +6,9 @@ use axum::{
 };
 use axum_extra::extract::CookieJar;
 use backend::{
+    articles::get_article,
     enter::{get_enter, post_enter},
+    publish::{get_publish, post_publish},
     *,
 };
 use clap::Parser;
@@ -73,6 +75,9 @@ fn app() -> Router {
         .route("/", get(index))
         .route("/enter", get(get_enter))
         .route("/enter", post(post_enter))
+        .route("/publish", get(get_publish))
+        .route("/publish", post(post_publish))
+        .route("/article/:id", get(get_article))
         .fallback(invalid_page)
         .nest_service("/assets", asset_service)
         .nest_service("/css", css_service)
