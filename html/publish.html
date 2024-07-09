@@ -1,0 +1,14 @@
+<div id="publish">
+  <h2>Send in an article for publication!</h2>
+  <p class="error">{}</p>
+  <form method="post" action="/publish">
+    <div id="title-section">
+      <label for="title">Title:</label><br />
+      <input type="text" name="title" required maxlength="100" /><br />
+    </div>
+    <div id="content-section">
+      <label for="content">Content:</label><br />
+      <textarea name="content" required rows="30"></textarea><br />
+    </div>
+    <input type="submit" value="Publish" />
+</div>

@@ -9,4 +9,6 @@
 
 - add session expiration
 - migrate to using a db
-- use or write a parser for html
+- use or write a good templating system for html - !! subject to injection rn
+- add file upload for publishing
+- use guids or hashes for all users

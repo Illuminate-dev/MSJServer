@@ -6,7 +6,9 @@ use axum::{
 };
 use axum_extra::extract::CookieJar;
 use backend::{
+    articles::get_article,
     enter::{get_enter, post_enter},
+    publish::{get_publish, post_publish},
     *,
 };
 use clap::Parser;
@@ -73,17 +75,12 @@ fn app() -> Router {
         .route("/", get(index))
         .route("/enter", get(get_enter))
         .route("/enter", post(post_enter))
+        .route("/publish", get(get_publish))
+        .route("/publish", post(post_publish))
+        .route("/article/:id", get(get_article))
         .fallback(invalid_page)
         .nest_service("/assets", asset_service)
         .nest_service("/css", css_service)
         .with_state(ServerState::new())
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
-}
-
-async fn index(State(state): State<ServerState>, jar: CookieJar) -> Html<String> {
-    render_with_header(jar, state, "Hello, world!".into())
-}
-
-async fn invalid_page(State(state): State<ServerState>, jar: CookieJar) -> Html<String> {
-    render_with_header(jar, state, INVALID_PAGE_TEMPLATE.into())
 }

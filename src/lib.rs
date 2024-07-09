@@ -1,4 +1,6 @@
+pub mod articles;
 pub mod enter;
+pub mod publish;
 
 use std::{
     fs,
@@ -6,10 +8,15 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use axum::response::{Html, IntoResponse};
+use axum::{
+    extract::State,
+    response::{Html, IntoResponse},
+};
 use axum_extra::extract::CookieJar;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+
+use crate::articles::Article;
 
 pub const SESSION_COOKIE_NAME: &str = "msj_session";
 
@@ -17,31 +24,36 @@ pub const SESSION_COOKIE_NAME: &str = "msj_session";
 pub struct ServerState {
     sessions: Arc<Mutex<Vec<Session>>>,
     accounts: Arc<Mutex<Vec<Account>>>,
+    articles: Arc<Mutex<Vec<Article>>>,
 }
 
 impl ServerState {
     pub fn new() -> Self {
+        Self {
+            sessions: Arc::new(Mutex::new(Vec::new())),
+            accounts: Arc::new(Mutex::new(Self::read_accounts())),
+            articles: Arc::new(Mutex::new(Vec::new())),
+        }
+    }
+
+    fn read_accounts() -> Vec<Account> {
         let data_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("data");
         fs::create_dir_all(data_dir.clone()).expect("failed to create data directory");
         let accounts_file = data_dir.join("accounts.dat");
         if accounts_file.exists() {
-            let accounts = bincode::deserialize(
+            bincode::deserialize(
                 fs::read(accounts_file)
                     .expect("failed to read accounts file")
                     .as_slice(),
             )
-            .expect("failed to deserialize accounts file");
-            Self {
-                accounts: Arc::new(Mutex::new(accounts)),
-                ..Default::default()
-            }
+            .expect("failed to deserialize accounts file")
         } else {
             fs::write(
                 accounts_file,
                 bincode::serialize::<Vec<Account>>(&vec![]).expect("failed to write accounts file"),
             )
             .expect("failed to write accounts file");
-            Self::default()
+            Vec::new()
         }
     }
 
@@ -89,6 +101,18 @@ pub const SIGNUP_PAGE_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/enter/signup.html"));
 pub const ALREADY_LOGGED_IN_PAGE_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/enter/already_logged_in.html"));
+pub const PUBLISH_PAGE_TEMPLATE: Template<'static> =
+    Template::new(include_str!("../html/publish.html"));
+pub const ARTICLE_PAGE_TEMPLATE: Template<'static> =
+    Template::new(include_str!("../html/article.html"));
+
+pub async fn index(State(state): State<ServerState>, jar: CookieJar) -> Html<String> {
+    render_with_header(jar, state, "Hello, world!".into())
+}
+
+pub async fn invalid_page(State(state): State<ServerState>, jar: CookieJar) -> Html<String> {
+    render_with_header(jar, state, INVALID_PAGE_TEMPLATE.into())
+}
 
 pub enum Arg<'a> {
     Text(&'a str),
@@ -209,4 +233,28 @@ pub fn get_sha256(password: &str) -> String {
         acc.push_str(&format!("{:02x}", byte));
         acc
     })
+}
+
+pub fn is_logged_in(state: ServerState, jar: CookieJar) -> bool {
+    jar.get(SESSION_COOKIE_NAME).is_some()
+        && state
+            .sessions
+            .lock()
+            .expect("failed to lock mutex")
+            .iter()
+            .any(|s| s.id == jar.get(SESSION_COOKIE_NAME).unwrap().value())
+}
+
+pub fn get_logged_in(state: &ServerState, jar: &CookieJar) -> Option<String> {
+    if jar.get(SESSION_COOKIE_NAME).is_some() {
+        state
+            .sessions
+            .lock()
+            .expect("failed to lock mutex")
+            .iter()
+            .find(|s| s.id == jar.get(SESSION_COOKIE_NAME).unwrap().value())
+            .map(|session| session.account_username.clone())
+    } else {
+        None
+    }
 }
