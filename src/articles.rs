@@ -80,7 +80,6 @@ pub async fn get_article(
 
     if file_path.exists() {
         let article = Article::from_file(file_path).expect("failed to read article from file");
-
         render_with_header(
             jar,
             state,
