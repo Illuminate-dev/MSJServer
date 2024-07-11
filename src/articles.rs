@@ -1,6 +1,6 @@
-use std::time::SystemTime;
-
+use anyhow::Result;
 use axum::extract::{Path, State};
+use chrono::{offset::Utc, DateTime};
 use uuid::Uuid;
 
 use crate::*;
@@ -11,8 +11,8 @@ pub struct Article {
     pub content: String,
     /// author username
     pub author: String,
-    pub created_at: SystemTime,
-    pub updated_at: SystemTime,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
     pub uuid: Uuid,
 }
 
@@ -24,14 +24,45 @@ impl Article {
             title,
             content,
             author,
-            created_at: SystemTime::now(),
-            updated_at: SystemTime::now(),
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
             uuid,
         }
     }
 
     fn render_content(&self) -> String {
         self.content.replace('\n', "<br />")
+    }
+
+    pub fn from_file(file_path: PathBuf) -> Result<Self> {
+        let data = fs::read(file_path)?;
+        bincode::deserialize(data.as_slice()).map_err(Into::into)
+    }
+
+    pub fn write_to_file(&self) -> Result<()> {
+        let data = bincode::serialize(self)?;
+        let file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("data")
+            .join("articles")
+            .join(format!("{}.dat", self.uuid));
+        fs::write(file_path, data)?;
+        Ok(())
+    }
+
+    pub fn get_all_articles() -> Vec<Self> {
+        let mut articles = Vec::new();
+        let articles_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("data")
+            .join("articles");
+        for entry in articles_dir
+            .read_dir()
+            .expect("failed to read articles directory")
+        {
+            let entry = entry.expect("failed to read entry");
+            let file_path = entry.path();
+            articles.push(Self::from_file(file_path).expect("failed to read article from file"));
+        }
+        articles
     }
 }
 
@@ -41,10 +72,15 @@ pub async fn get_article(
     Path(id): Path<Uuid>,
 ) -> impl IntoResponse {
     println!("getting article with id: {}", id);
-    let articles = state.articles.lock().expect("failed to lock mutex");
-    if let Some(article) = articles.iter().find(|a| a.uuid == id) {
-        let article = article.clone();
-        drop(articles);
+
+    let file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("data")
+        .join("articles")
+        .join(format!("{}.dat", id));
+
+    if file_path.exists() {
+        let article = Article::from_file(file_path).expect("failed to read article from file");
+
         render_with_header(
             jar,
             state,
@@ -57,7 +93,6 @@ pub async fn get_article(
                 .into(),
         )
     } else {
-        drop(articles);
-        render_with_header(jar, state, INVALID_PAGE_TEMPLATE.into())
+        render_with_header(jar, state, NOT_FOUND_PAGE_TEMPLATE.into())
     }
 }

@@ -1,8 +1,4 @@
-use axum::{
-    extract::State,
-    response::{Redirect, Response},
-    Form,
-};
+use axum::{extract::State, response::Redirect, Form};
 
 use crate::*;
 
@@ -37,8 +33,7 @@ pub async fn post_publish(
 
     if let Some(account_name) = get_logged_in(&state, &jar) {
         let article = Article::create_new(title, content, account_name);
-        let mut articles = state.articles.lock().expect("failed to lock mutex");
-        articles.push(article);
+        article.write_to_file().expect("failed to save file");
 
         Ok(Redirect::to("/"))
     } else {

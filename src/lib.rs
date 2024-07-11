@@ -1,5 +1,6 @@
 pub mod articles;
 pub mod enter;
+pub mod profile;
 pub mod publish;
 
 use std::{
@@ -24,15 +25,14 @@ pub const SESSION_COOKIE_NAME: &str = "msj_session";
 pub struct ServerState {
     sessions: Arc<Mutex<Vec<Session>>>,
     accounts: Arc<Mutex<Vec<Account>>>,
-    articles: Arc<Mutex<Vec<Article>>>,
 }
 
 impl ServerState {
     pub fn new() -> Self {
+        Self::load_articles_dir();
         Self {
             sessions: Arc::new(Mutex::new(Vec::new())),
             accounts: Arc::new(Mutex::new(Self::read_accounts())),
-            articles: Arc::new(Mutex::new(Vec::new())),
         }
     }
 
@@ -74,27 +74,30 @@ impl ServerState {
             .expect("failed to serialize accounts"),
         )
     }
+
+    fn load_articles_dir() {
+        let articles_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("data")
+            .join("articles");
+        fs::create_dir_all(articles_dir.clone()).expect("failed to create articles directory");
+    }
 }
 
 pub const HEADER_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/header_template.html"));
 
 pub fn render_with_header(jar: CookieJar, state: ServerState, to_render: Arg) -> Html<String> {
-    let sessions = state.sessions.lock().expect("failed to lock mutex");
-
-    if jar.get(SESSION_COOKIE_NAME).is_some()
-        && sessions
-            .iter()
-            .any(|s| s.id == jar.get(SESSION_COOKIE_NAME).unwrap().value())
-    {
+    if is_logged_in(&state, &jar) {
         HEADER_TEMPLATE.render_html(vec![true.into(), true.into(), to_render])
     } else {
         HEADER_TEMPLATE.render_html(vec![false.into(), false.into(), to_render])
     }
 }
 
-pub const INVALID_PAGE_TEMPLATE: Template<'static> =
-    Template::new(include_str!("../html/404.html"));
+pub const NOT_FOUND_PAGE_TEMPLATE: Template<'static> =
+    Template::new(include_str!("../html/errors/404.html"));
+pub const NOT_LOGGED_IN_PAGE_TEMPLATE: Template<'static> =
+    Template::new(include_str!("../html/errors/not_logged_in.html"));
 pub const LOGIN_PAGE_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/enter/login.html"));
 pub const SIGNUP_PAGE_TEMPLATE: Template<'static> =
@@ -105,13 +108,15 @@ pub const PUBLISH_PAGE_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/publish.html"));
 pub const ARTICLE_PAGE_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/article.html"));
+pub const PROFILE_PAGE_TEMPLATE: Template<'static> =
+    Template::new(include_str!("../html/profile.html"));
 
 pub async fn index(State(state): State<ServerState>, jar: CookieJar) -> Html<String> {
     render_with_header(jar, state, "Hello, world!".into())
 }
 
 pub async fn invalid_page(State(state): State<ServerState>, jar: CookieJar) -> Html<String> {
-    render_with_header(jar, state, INVALID_PAGE_TEMPLATE.into())
+    render_with_header(jar, state, NOT_FOUND_PAGE_TEMPLATE.into())
 }
 
 pub enum Arg<'a> {
@@ -195,8 +200,16 @@ impl<'a> From<Template<'a>> for &'a str {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Perms {
+    Admin,
+    Editor,
+    User,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Account {
     pub username: String,
+    pub permission: Perms,
     pub email: String,
     pub password_hash: String,
 }
@@ -206,6 +219,7 @@ impl Account {
         Self {
             username,
             email,
+            permission: Perms::User,
             password_hash: get_sha256(&password),
         }
     }
@@ -235,7 +249,7 @@ pub fn get_sha256(password: &str) -> String {
     })
 }
 
-pub fn is_logged_in(state: ServerState, jar: CookieJar) -> bool {
+pub fn is_logged_in(state: &ServerState, jar: &CookieJar) -> bool {
     jar.get(SESSION_COOKIE_NAME).is_some()
         && state
             .sessions

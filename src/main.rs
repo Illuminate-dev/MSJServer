@@ -1,13 +1,11 @@
 use axum::{
-    extract::State,
-    response::Html,
     routing::{get, post},
     Router,
 };
-use axum_extra::extract::CookieJar;
 use backend::{
     articles::get_article,
     enter::{get_enter, post_enter},
+    profile::get_profile,
     publish::{get_publish, post_publish},
     *,
 };
@@ -78,6 +76,7 @@ fn app() -> Router {
         .route("/publish", get(get_publish))
         .route("/publish", post(post_publish))
         .route("/article/:id", get(get_article))
+        .route("/profile", get(get_profile))
         .fallback(invalid_page)
         .nest_service("/assets", asset_service)
         .nest_service("/css", css_service)

@@ -36,19 +36,10 @@ pub async fn get_enter(
         }
     }
 
-    let sessions = state.sessions.lock().expect("failed to lock mutex");
-
-    if jar.get(SESSION_COOKIE_NAME).is_some()
-        && sessions
-            .iter()
-            .any(|s| s.id == jar.get(SESSION_COOKIE_NAME).unwrap().value())
-    {
-        drop(sessions);
+    if is_logged_in(&state, &jar) {
         // kind of uneccessary to check again
         return enter_page(jar, state, ALREADY_LOGGED_IN_PAGE_TEMPLATE, None).into_response();
     }
-
-    drop(sessions);
 
     if let Some(Query(EnterParams { action: query })) = query {
         match query {
@@ -93,21 +84,13 @@ pub async fn post_enter(
     jar: CookieJar,
     Form(form): Form<EnterForm>,
 ) -> Result<(CookieJar, Redirect), (StatusCode, impl IntoResponse)> {
-    let sessions = state.sessions.lock().expect("failed to lock mutex");
-    if jar.get(SESSION_COOKIE_NAME).is_some()
-        && sessions
-            .iter()
-            .any(|s| s.id == jar.get(SESSION_COOKIE_NAME).unwrap().value())
-    {
-        drop(sessions);
+    if is_logged_in(&state, &jar) {
         // already logged in
         return Err((
             StatusCode::PRECONDITION_FAILED,
             enter_page(jar, state, ALREADY_LOGGED_IN_PAGE_TEMPLATE, None),
         ));
     }
-
-    drop(sessions);
 
     let Query(EnterParams { action: query }) = query;
     match query {
