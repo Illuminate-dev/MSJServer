@@ -2,19 +2,33 @@ use axum::{extract::State, response::Redirect, Form};
 
 use crate::*;
 
-fn publish_page(jar: CookieJar, state: ServerState, error: Option<&str>) -> impl IntoResponse {
+fn publish_page(
+    jar: CookieJar,
+    state: ServerState,
+    error: Option<&str>,
+    logged_in: bool,
+) -> impl IntoResponse {
     render_with_header(
         jar,
         state,
         PUBLISH_PAGE_TEMPLATE
-            .render(vec![error.unwrap_or("").into()])
+            .render(vec![error.unwrap_or("").into(), logged_in.into()])
             .as_str()
             .into(),
     )
 }
 
 pub async fn get_publish(State(state): State<ServerState>, jar: CookieJar) -> impl IntoResponse {
-    publish_page(jar, state, None)
+    if is_logged_in(&state, &jar) {
+        publish_page(jar, state, None, true)
+    } else {
+        publish_page(
+            jar,
+            state,
+            Some("You must be logged in to publish a post."),
+            false,
+        )
+    }
 }
 
 #[derive(Deserialize)]
@@ -41,6 +55,7 @@ pub async fn post_publish(
             jar,
             state,
             Some("You must be logged in to publish a post."),
+            false,
         ))
     }
 }

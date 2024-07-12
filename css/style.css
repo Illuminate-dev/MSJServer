@@ -261,6 +261,17 @@ nav {
   cursor: pointer;
 }
 
+#publish input[type="submit"]:disabled {
+  background-color: #d3d3d3;
+  color: grey;
+}
+
+#publish input[type="submit"]:disabled:hover {
+  cursor: not-allowed;
+  color: grey;
+  background-color: #d3d3d3;
+}
+
 /* END PUBLISH */
 
 /* START PROFILE */
