@@ -53,6 +53,21 @@ li {
   list-style: none;
 }
 
+a.button {
+  display: block;
+  background-color: black;
+  color: white;
+  padding: 5px 20px;
+  font-size: 22px;
+  transition: all ease-in-out 0.1s;
+  border: 2px solid black;
+}
+
+a.button:hover {
+  background-color: white;
+  color: black;
+}
+
 /* START HEADER */
 
 h1 {
@@ -102,21 +117,6 @@ nav {
 
 #p404 h2 {
   font-size: 36px;
-}
-
-#p404 a.button {
-  display: block;
-  background-color: black;
-  color: white;
-  padding: 5px 20px;
-  font-size: 22px;
-  transition: all ease-in-out 0.1s;
-  border: 2px solid black;
-}
-
-#p404 a.button:hover {
-  background-color: white;
-  color: black;
 }
 
 /* END 404 */
@@ -289,10 +289,10 @@ nav {
   justify-content: space-between;
 }
 
-#profile .article-link {
+#profile .article-title {
   display: block;
   width: 100%;
-  margin: 10px auto;
+  margin: 5px auto 0px;
   color: black;
   text-decoration: none;
   font-size: 16px;
@@ -302,4 +302,79 @@ nav {
   /* transition: all ease-in-out 0.1s; */
 }
 
+#profile .article-author {
+  font-size: 12px;
+  color: #444444;
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
 /* END PROFILE */
+
+/* START HOME  */
+
+#home {
+  font-family: "Roboto", "Arial", sans-serif;
+  width: 85%;
+  margin: 30px auto;
+}
+
+#home .article-small {
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 5px;
+  display: flex;
+  gap: 10px;
+}
+
+#home .article-small img {
+  width: 25%;
+}
+
+#home .article-small-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+#home .article-title {
+  display: block;
+  width: 100%;
+  margin: 5px auto 0px;
+  color: black;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: bold;
+  /* padding: 10px; */
+  /* border: 1px solid black; */
+  /* transition: all ease-in-out 0.1s; */
+}
+
+#home .article-author {
+  font-size: 12px;
+  color: #444444;
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+/* END HOME */
+
+/* START ERROR */
+
+#error > * {
+  max-width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#error {
+  font-family: "Roboto", "Arial", sans-serif;
+  max-width: fit-content;
+  margin: auto;
+}
+
+#error h2 {
+  font-size: 36px;
+}
+
+/* END ERROR */

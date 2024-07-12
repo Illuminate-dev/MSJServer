@@ -1,5 +1,6 @@
 pub mod articles;
 pub mod enter;
+pub mod home;
 pub mod profile;
 pub mod publish;
 use std::{
@@ -97,6 +98,8 @@ pub const NOT_FOUND_PAGE_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/errors/404.html"));
 pub const NOT_LOGGED_IN_PAGE_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/errors/not_logged_in.html"));
+pub const INDEX_PAGE_TEMPLATE: Template<'static> =
+    Template::new(include_str!("../html/index.html"));
 pub const LOGIN_PAGE_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/enter/login.html"));
 pub const SIGNUP_PAGE_TEMPLATE: Template<'static> =
@@ -109,10 +112,6 @@ pub const ARTICLE_PAGE_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/article.html"));
 pub const PROFILE_PAGE_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/profile.html"));
-
-pub async fn index(State(state): State<ServerState>, jar: CookieJar) -> Html<String> {
-    render_with_header(jar, state, "Hello, world!".into())
-}
 
 pub async fn invalid_page(State(state): State<ServerState>, jar: CookieJar) -> Html<String> {
     render_with_header(jar, state, NOT_FOUND_PAGE_TEMPLATE.into())

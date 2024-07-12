@@ -5,6 +5,7 @@ use axum::{
 use backend::{
     articles::get_article,
     enter::{get_enter, post_enter},
+    home::index,
     profile::get_profile,
     publish::{get_publish, post_publish},
     *,
