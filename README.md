@@ -16,3 +16,4 @@
 - add tests
 - go through expects and unwraps to make sure that they only occur when intended
 - add article images
+- add more editor features

@@ -198,7 +198,7 @@ nav {
 
 #publish {
   font-family: "Roboto", "Arial", sans-serif;
-  width: 50%;
+  width: 75%;
   margin: auto;
 }
 
@@ -221,27 +221,36 @@ nav {
   gap: 20px;
 }
 
-#publish form div {
+#publish form .section {
   display: block;
   width: 100%;
   margin: 0 auto;
 }
 
 #publish input[type="text"] {
+  box-sizing: border-box;
   width: 100%;
   margin-top: 5px;
   padding: 5px 10px;
   font-size: 14px;
 }
 
-#publish textarea {
-  font-family: "Roboto", "Arial", sans-serif;
-  width: 100%;
-  margin-top: 5px;
-  padding: 5px 10px;
-  font-size: 14px;
-  resize: none;
+.ck.ck-editor__editable_inline {
+  box-sizing: border-box;
 }
+
+.ck-content {
+  min-height: 220px;
+}
+
+/* #publish textarea { */
+/*   font-family: "Roboto", "Arial", sans-serif; */
+/*   width: 100%; */
+/*   margin-top: 5px; */
+/*   padding: 5px 10px; */
+/*   font-size: 14px; */
+/*   resize: none; */
+/* } */
 
 #publish input[type="submit"] {
   display: block;
@@ -389,3 +398,11 @@ nav {
 }
 
 /* END ERROR */
+
+/* START ARTICLE */
+
+#article {
+  font-family: "Roboto", "Arial", sans-serif;
+}
+
+/* END ARTICLE */

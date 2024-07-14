@@ -70,6 +70,10 @@ fn app() -> Router {
 
     let css_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("css");
     let css_service = ServeDir::new(css_dir);
+
+    let js_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("js");
+    let js_service = ServeDir::new(js_dir);
+
     Router::new()
         .route("/", get(index))
         .route("/enter", get(get_enter))
@@ -81,6 +85,7 @@ fn app() -> Router {
         .fallback(invalid_page)
         .nest_service("/assets", asset_service)
         .nest_service("/css", css_service)
+        .nest_service("/js", js_service)
         .with_state(ServerState::new())
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
 }

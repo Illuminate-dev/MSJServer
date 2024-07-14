@@ -1,14 +1,27 @@
+<link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/42.0.1/ckeditor5.css" />
 <div id="publish">
   <h2>Send in an article for publication!</h2>
   <p class="error">{}</p>
-  <form method="post" action="/publish">
-    <div id="title-section">
+  <form method="post" action="/publish" id="publishForm">
+    <div id="title-section" class="section" >
       <label for="title">Title:</label><br />
       <input type="text" name="title" required maxlength="100" /><br />
     </div>
-    <div id="content-section">
+    <div id="content-section" class="section" >
       <label for="content">Content:</label><br />
-      <textarea name="content" required rows="30"></textarea><br />
+      <input type="hidden" name="content" id="content" />
+      <!-- <textarea name="content" required rows="30"></textarea><br /> -->
+      <div id="editor">
+      </div>
     </div>
     <input type="submit" value="Publish" { | disabled } />
 </div>
+<script type="importmap">
+    {
+        "imports": {
+            "ckeditor5": "https://cdn.ckeditor.com/ckeditor5/42.0.1/ckeditor5.js",
+            "ckeditor5/": "https://cdn.ckeditor.com/ckeditor5/42.0.1/"
+        }
+    }
+</script>
+<script src="js/editor.js" type="module"></script>
