@@ -2,30 +2,6 @@ use axum::extract::Query;
 
 use crate::*;
 
-fn render_article_small(article: &Article) -> String {
-    format!(
-        "<a href=\"/article/{}\">
-            <div class=\"article-small\">
-                <img src=\"{}\" alt=\"placeholder image\"/>
-                <div class=\"article-small-info\">
-                    <div>
-                        <p class=\"article-title\">{}</p>
-                        <p class=\"article-author\">By: {}</p>
-                        <p class=\"article-desc\">{}</p>
-                    </div>
-                    <p class=\"article-timestamp\">Created on {}</p>
-                </div>
-            </div>
-        </a>",
-        article.uuid,
-        "http://via.placeholder.com/640x360",
-        article.title,
-        article.author,
-        article.content.chars().take(100).collect::<String>() + "...",
-        article.created_at.format("%B %e, %Y")
-    )
-}
-
 #[derive(Deserialize)]
 pub struct ProfileQuery {
     account_name: Option<String>,
@@ -53,7 +29,7 @@ fn render_profile(jar: CookieJar, state: ServerState, account_name: &str) -> Htm
     let articles_rendered = articles
         .iter()
         .filter(|a| a.author == account_name)
-        .map(render_article_small)
+        .map(|a| a.render_article_small())
         .collect::<Vec<_>>()
         .join("<br />");
 

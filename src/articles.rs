@@ -16,6 +16,37 @@ pub struct Article {
     pub uuid: Uuid,
 }
 
+fn format_for_description(s: &str) -> String {
+    let mut result = String::new();
+    let mut iter = s.chars().take(100);
+
+    while let Some(char) = iter.next() {
+        match char {
+            // '\\' => {
+            //     iter.next();
+            // }
+            '<' => {
+                #[allow(clippy::while_let_on_iterator)]
+                while let Some(char) = iter.next() {
+                    // if char == '\\' {
+                    //     iter.next();
+                    // }
+                    if char == '>' {
+                        break;
+                    }
+                }
+
+                // result.push_str("<br />");
+            }
+            _ => {
+                result.push(char);
+            }
+        }
+    }
+
+    result + "..."
+}
+
 impl Article {
     pub fn create_new(title: String, content: String, author: String) -> Self {
         let uuid = Uuid::new_v4();
@@ -63,6 +94,30 @@ impl Article {
             articles.push(Self::from_file(file_path).expect("failed to read article from file"));
         }
         articles
+    }
+
+    pub fn render_article_small(&self) -> String {
+        format!(
+            "<a href=\"/article/{}\">
+            <div class=\"article-small\">
+                <img src=\"{}\" alt=\"placeholder image\"/>
+                <div class=\"article-small-info\">
+                    <div>
+                        <p class=\"article-title\">{}</p>
+                        <p class=\"article-author\">By: {}</p>
+                        <p class=\"article-desc\">{}</p>
+                    </div>
+                    <p class=\"article-timestamp\">Created on {}</p>
+                </div>
+            </div>
+        </a>",
+            self.uuid,
+            "http://via.placeholder.com/640x360",
+            self.title,
+            self.author,
+            format_for_description(&self.content),
+            self.created_at.format("%B %e, %Y")
+        )
     }
 }
 
