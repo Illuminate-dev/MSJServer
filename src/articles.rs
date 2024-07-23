@@ -141,6 +141,8 @@ pub async fn get_article(
             ARTICLE_PAGE_TEMPLATE
                 .render(vec![
                     article.title.as_str().into(),
+                    article.author.as_str().into(),
+                    article.author.as_str().into(),
                     article.render_content().as_str().into(),
                 ])
                 .as_str()

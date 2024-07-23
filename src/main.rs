@@ -82,6 +82,8 @@ fn app() -> Router {
         .route("/publish", post(post_publish))
         .route("/article/:id", get(get_article))
         .route("/profile", get(get_profile))
+        .route("/profile/", get(get_profile))
+        .route("/profile/:account_name", get(get_profile))
         .fallback(invalid_page)
         .nest_service("/assets", asset_service)
         .nest_service("/css", css_service)

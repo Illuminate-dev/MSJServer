@@ -123,6 +123,8 @@ pub const ARTICLE_PAGE_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/article.html"));
 pub const PROFILE_PAGE_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/profile.html"));
+pub const ACCOUNT_NOT_FOUND_PAGE_TEMPLATE: Template<'static> =
+    Template::new(include_str!("../html/errors/account_not_found.html"));
 
 pub async fn invalid_page(State(state): State<ServerState>, jar: CookieJar) -> Html<String> {
     render_with_header(jar, state, NOT_FOUND_PAGE_TEMPLATE.into())
