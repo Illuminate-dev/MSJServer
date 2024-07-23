@@ -7,6 +7,7 @@ use std::{
     fs,
     path::PathBuf,
     sync::{Arc, Mutex},
+    thread,
 };
 
 use axum::{
@@ -14,6 +15,7 @@ use axum::{
     response::{Html, IntoResponse},
 };
 use axum_extra::extract::CookieJar;
+use chrono::{DateTime, TimeDelta, Utc};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -30,10 +32,19 @@ pub struct ServerState {
 impl ServerState {
     pub fn new() -> Self {
         Self::load_articles_dir();
-        Self {
+        let state = Self {
             sessions: Arc::new(Mutex::new(Vec::new())),
             accounts: Arc::new(Mutex::new(Self::read_accounts())),
-        }
+        };
+        let arc_sessions = Arc::clone(&state.sessions);
+
+        thread::spawn(move || loop {
+            thread::sleep(std::time::Duration::from_secs(60));
+            let mut sessions = arc_sessions.lock().expect("failed to lock mutex");
+            sessions.retain(|s| !s.is_expired());
+        });
+
+        state
     }
 
     fn read_accounts() -> Vec<Account> {
@@ -226,6 +237,7 @@ impl Account {
 pub struct Session {
     pub id: String,
     pub account_username: String,
+    last_used: DateTime<Utc>,
 }
 
 impl Session {
@@ -233,7 +245,16 @@ impl Session {
         Self {
             id,
             account_username,
+            last_used: Utc::now(),
         }
+    }
+
+    pub fn extend(&mut self) {
+        self.last_used = Utc::now();
+    }
+
+    fn is_expired(&self) -> bool {
+        self.last_used < Utc::now() - TimeDelta::minutes(30)
     }
 }
 
@@ -248,25 +269,32 @@ pub fn get_sha256(password: &str) -> String {
 }
 
 pub fn is_logged_in(state: &ServerState, jar: &CookieJar) -> bool {
-    jar.get(SESSION_COOKIE_NAME).is_some()
-        && state
-            .sessions
-            .lock()
-            .expect("failed to lock mutex")
-            .iter()
-            .any(|s| s.id == jar.get(SESSION_COOKIE_NAME).unwrap().value())
+    if jar.get(SESSION_COOKIE_NAME).is_none() {
+        return false;
+    }
+    let mut locked_sessions = state.sessions.lock().expect("failed to lock mutex");
+    let session = locked_sessions
+        .iter_mut()
+        .find(|s| s.id == jar.get(SESSION_COOKIE_NAME).unwrap().value() && !s.is_expired());
+
+    if let Some(session) = session {
+        session.extend();
+        true
+    } else {
+        false
+    }
 }
 
 pub fn get_logged_in(state: &ServerState, jar: &CookieJar) -> Option<String> {
-    if jar.get(SESSION_COOKIE_NAME).is_some() {
-        state
-            .sessions
-            .lock()
-            .expect("failed to lock mutex")
-            .iter()
-            .find(|s| s.id == jar.get(SESSION_COOKIE_NAME).unwrap().value())
-            .map(|session| session.account_username.clone())
-    } else {
-        None
-    }
+    jar.get(SESSION_COOKIE_NAME)?;
+
+    let mut locked_sessions = state.sessions.lock().expect("failed to lock mutex");
+    let session = locked_sessions
+        .iter_mut()
+        .find(|s| s.id == jar.get(SESSION_COOKIE_NAME).unwrap().value() && !s.is_expired());
+
+    session.map(|s| {
+        s.extend();
+        s.account_username.clone()
+    })
 }

@@ -7,10 +7,9 @@
 
 ## TODO
 
-- add session expiration
 - migrate to using a db
-- use or write a good templating system for html - !! subject to injection rn - maybe jira?
-- add file upload for publishing
+- use or write a good templating system for html - !! subject to injection rn (wait actually maybe not) - maybe jira?
+- add file upload for publishing (images)
 - use guids or hashes for all users
 - rn because of borrow rules some cloning happens that maybe doesnt need to
 - add tests
