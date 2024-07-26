@@ -135,22 +135,20 @@ pub async fn get_article(
 
     if file_path.exists() {
         let article = Article::from_file(file_path).expect("failed to read article from file");
+
+        let article_content = article.render_content();
+        let article_date = article.created_at.format("%B %e, %Y").to_string();
+
+        let title_entry = ArgEntry::new("title", Arg::Text(article.title.as_str()));
+        let author_entry = ArgEntry::new("author", Arg::Text(article.author.as_str()));
+        let date_entry = ArgEntry::new("date", Arg::Text(article_date.as_str()));
+        let content_entry = ArgEntry::new("content", Arg::Text(article_content.as_str()));
+
         render_with_header(
             jar,
             state,
             ARTICLE_PAGE_TEMPLATE
-                .render(vec![
-                    article.title.as_str().into(),
-                    article.author.as_str().into(),
-                    article.author.as_str().into(),
-                    article
-                        .created_at
-                        .format("%B %e, %y")
-                        .to_string()
-                        .as_str()
-                        .into(),
-                    article.render_content().as_str().into(),
-                ])
+                .render(vec![title_entry, author_entry, date_entry, content_entry])
                 .as_str()
                 .into(),
         )

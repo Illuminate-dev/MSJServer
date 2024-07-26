@@ -65,7 +65,7 @@ fn enter_page(
     render_with_header(
         jar,
         state,
-        (page.render(vec![error.unwrap_or("").into()]))
+        (page.render(vec![ArgEntry::new("error", error.unwrap_or("").into())]))
             .as_str()
             .into(),
     )

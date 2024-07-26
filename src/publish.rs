@@ -12,7 +12,10 @@ fn publish_page(
         jar,
         state,
         PUBLISH_PAGE_TEMPLATE
-            .render(vec![error.unwrap_or("").into(), logged_in.into()])
+            .render(vec![
+                ArgEntry::new("error", error.unwrap_or("").into()),
+                ArgEntry::new("logged_in", logged_in.into()),
+            ])
             .as_str()
             .into(),
     )

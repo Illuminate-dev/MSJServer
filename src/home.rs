@@ -15,7 +15,10 @@ pub async fn index(State(state): State<ServerState>, jar: CookieJar) -> Html<Str
         jar,
         state,
         INDEX_PAGE_TEMPLATE
-            .render(vec![articles_rendered.as_str().into()])
+            .render(vec![ArgEntry::new(
+                "articles",
+                articles_rendered.as_str().into(),
+            )])
             .as_str()
             .into(),
     )

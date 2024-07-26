@@ -3,12 +3,15 @@ pub mod enter;
 pub mod home;
 pub mod profile;
 pub mod publish;
+pub mod template;
+
 use std::{
     fs,
     path::PathBuf,
     sync::{Arc, Mutex},
     thread,
 };
+use template::{Arg, ArgEntry, Template};
 
 use axum::{
     extract::State,
@@ -98,13 +101,13 @@ pub const HEADER_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/header_template.html"));
 
 pub fn render_with_header(jar: CookieJar, state: ServerState, to_render: Arg) -> Html<String> {
-    if is_logged_in(&state, &jar) {
-        HEADER_TEMPLATE.render_html(vec![true.into(), true.into(), to_render])
-    } else {
-        HEADER_TEMPLATE.render_html(vec![false.into(), false.into(), to_render])
-    }
+    let logged_in_argentry = ArgEntry::new("logged_in", is_logged_in(&state, &jar).into());
+
+    HEADER_TEMPLATE.render_html(vec![logged_in_argentry, ArgEntry::new("main", to_render)])
 }
 
+pub const ACCOUNT_NOT_FOUND_PAGE_TEMPLATE: Template<'static> =
+    Template::new(include_str!("../html/errors/account_not_found.html"));
 pub const NOT_FOUND_PAGE_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/errors/404.html"));
 pub const NOT_LOGGED_IN_PAGE_TEMPLATE: Template<'static> =
@@ -123,91 +126,9 @@ pub const ARTICLE_PAGE_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/article.html"));
 pub const PROFILE_PAGE_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/profile.html"));
-pub const ACCOUNT_NOT_FOUND_PAGE_TEMPLATE: Template<'static> =
-    Template::new(include_str!("../html/errors/account_not_found.html"));
 
 pub async fn invalid_page(State(state): State<ServerState>, jar: CookieJar) -> Html<String> {
     render_with_header(jar, state, NOT_FOUND_PAGE_TEMPLATE.into())
-}
-
-pub enum Arg<'a> {
-    Text(&'a str),
-    Bool(bool),
-}
-
-impl<'a> From<&'a str> for Arg<'a> {
-    fn from(text: &'a str) -> Self {
-        Self::Text(text)
-    }
-}
-
-impl<'a> From<bool> for Arg<'a> {
-    fn from(value: bool) -> Self {
-        Self::Bool(value)
-    }
-}
-
-impl<'a> From<Template<'a>> for Arg<'a> {
-    fn from(temp: Template<'a>) -> Self {
-        Self::Text(temp.into())
-    }
-}
-
-pub struct Template<'a> {
-    content: &'a str,
-}
-
-impl<'a> Template<'a> {
-    pub const fn new(content: &'a str) -> Self {
-        Self { content }
-    }
-
-    pub fn render(&self, args: Vec<Arg>) -> String {
-        let mut content = self.content.to_string();
-        for arg in args {
-            match arg {
-                Arg::Text(text) => content = content.replacen("{}", text, 1),
-                Arg::Bool(value) => {
-                    let start = content
-                        .find('{')
-                        .expect("failed to find start of bool expression");
-                    let middle = start
-                        + content[start..]
-                            .find('|')
-                            .expect("failed to find middle of bool expression");
-                    let end = middle
-                        + content[middle..]
-                            .find('}')
-                            .expect("failed to find middle of bool expression");
-
-                    let first_opt = String::from(&content[start + 1..middle]);
-                    let second_opt = String::from(content[middle + 1..end].trim());
-                    content.replace_range(
-                        start..end + 1,
-                        if value { &first_opt } else { &second_opt },
-                    );
-                }
-            }
-        }
-        content.replace("{}", "")
-    }
-
-    pub fn render_html(&self, args: Vec<Arg>) -> Html<String> {
-        Html(self.render(args))
-    }
-}
-
-// for nesting templates
-impl<'a> From<Template<'a>> for String {
-    fn from(template: Template) -> Self {
-        template.content.to_string()
-    }
-}
-
-impl<'a> From<Template<'a>> for &'a str {
-    fn from(template: Template<'a>) -> Self {
-        template.content
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

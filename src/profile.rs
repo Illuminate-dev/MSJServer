@@ -50,12 +50,15 @@ fn render_profile(jar: CookieJar, state: ServerState, account_name: &str) -> Htm
         state,
         PROFILE_PAGE_TEMPLATE
             .render(vec![
-                account_name.into(),
-                if articles_rendered.is_empty() {
-                    "No articles found".into()
-                } else {
-                    articles_rendered.as_str().into()
-                },
+                ArgEntry::new("username", account_name.into()),
+                ArgEntry::new(
+                    "articles",
+                    if articles_rendered.is_empty() {
+                        "No articles found".into()
+                    } else {
+                        articles_rendered.as_str().into()
+                    },
+                ),
             ])
             .as_str()
             .into(),
