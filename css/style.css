@@ -416,17 +416,32 @@ nav {
   margin-bottom: 0px;
 }
 
-#article .author-wrapper {
+#article .info-wrapper {
   font-size: 16px;
+  margin-top: 0.5em;
+  margin-bottom: 2em;
+}
+
+#article .author-wrapper {
   font-style: italic;
   font-weight: light;
-  margin-bottom: 2em;
+  margin-top: 0px;
+  margin-bottom: 0px;
 }
 
 #article .author {
   font-style: normal;
   font-weight: bold;
   text-decoration: underline;
+}
+
+#article .date-wrapper {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+}
+
+#article .date {
+  font-weight: bold;
 }
 
 /* END ARTICLE */

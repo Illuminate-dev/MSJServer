@@ -143,6 +143,12 @@ pub async fn get_article(
                     article.title.as_str().into(),
                     article.author.as_str().into(),
                     article.author.as_str().into(),
+                    article
+                        .created_at
+                        .format("%B %e, %y")
+                        .to_string()
+                        .as_str()
+                        .into(),
                     article.render_content().as_str().into(),
                 ])
                 .as_str()
