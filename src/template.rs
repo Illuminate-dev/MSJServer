@@ -76,7 +76,7 @@ impl<'a> Template<'a> {
                 }
             }
         }
-        content.replace("{}", "")
+        content
     }
 
     pub fn render_html(&self, args: Vec<ArgEntry>) -> Html<String> {
