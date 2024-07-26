@@ -345,6 +345,12 @@ nav {
   margin: 30px auto;
 }
 
+#home h2 {
+  font-size: 36px;
+  max-width: fit-content;
+  margin: 15px auto;
+}
+
 #home .article-small {
   border: 1px solid black;
   border-radius: 5px;
