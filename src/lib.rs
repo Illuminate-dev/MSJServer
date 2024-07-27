@@ -138,12 +138,24 @@ pub enum Perms {
     User,
 }
 
+impl Perms {
+    pub fn as_string(&self) -> String {
+        match self {
+            Self::Admin => "Admin",
+            Self::Editor => "Editor",
+            Self::User => "User",
+        }
+        .to_string()
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Account {
     pub username: String,
     pub permission: Perms,
     pub email: String,
     pub password_hash: String,
+    pub created_at: DateTime<Utc>,
 }
 
 impl Account {
@@ -153,6 +165,7 @@ impl Account {
             email,
             permission: Perms::User,
             password_hash: get_sha256(&password),
+            created_at: Utc::now(),
         }
     }
 }
