@@ -1,3 +1,4 @@
+pub mod admin;
 pub mod articles;
 pub mod enter;
 pub mod home;
@@ -126,12 +127,14 @@ pub const ARTICLE_PAGE_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/article.html"));
 pub const PROFILE_PAGE_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/profile.html"));
+pub const NOT_AUTHOIRZED_PAGE_TEMPLATE: Template<'static> =
+    Template::new(include_str!("../html/errors/not_authorized.html"));
 
 pub async fn invalid_page(State(state): State<ServerState>, jar: CookieJar) -> Html<String> {
     render_with_header(jar, state, NOT_FOUND_PAGE_TEMPLATE.into())
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Perms {
     Admin,
     Editor,
@@ -233,4 +236,13 @@ pub fn get_logged_in(state: &ServerState, jar: &CookieJar) -> Option<String> {
         s.extend();
         s.account_username.clone()
     })
+}
+
+/// Returns the permission level of the user with the given username or None if the user does not exist.
+pub fn get_perms(state: &ServerState, username: &str) -> Option<Perms> {
+    let accounts = state.accounts.lock().expect("failed to lock mutex");
+    accounts
+        .iter()
+        .find(|a| a.username == username)
+        .map(|a| a.permission)
 }

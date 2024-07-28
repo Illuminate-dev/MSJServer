@@ -1,8 +1,10 @@
 use axum::{
-    routing::{get, post},
-    Router,
+    extract::Request,
+    routing::{get, post, IntoMakeService},
+    Router, ServiceExt,
 };
 use backend::{
+    admin::admin_routes,
     articles::get_article,
     enter::{get_enter, post_enter},
     home::index,
@@ -16,8 +18,12 @@ use std::{
     net::{IpAddr, Ipv6Addr, SocketAddr},
     path::PathBuf,
 };
-use tower::ServiceBuilder;
-use tower_http::{services::ServeDir, trace::TraceLayer};
+use tower::{Layer, ServiceBuilder};
+use tower_http::{
+    normalize_path::{NormalizePath, NormalizePathLayer},
+    services::ServeDir,
+    trace::TraceLayer,
+};
 
 #[derive(Parser, Debug)]
 #[clap(name = "backend", about = "backend for msj website")]
@@ -58,13 +64,13 @@ async fn main() {
         tokio::net::TcpListener::bind(sock_addr)
             .await
             .expect("failed to bind"),
-        app.into_make_service(),
+        ServiceExt::<Request>::into_make_service(app),
     )
     .await
     .expect("server failed to start")
 }
 
-fn app() -> Router {
+fn app() -> NormalizePath<Router> {
     let assets_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("assets");
     let asset_service = ServeDir::new(assets_dir);
 
@@ -74,20 +80,24 @@ fn app() -> Router {
     let js_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("js");
     let js_service = ServeDir::new(js_dir);
 
-    Router::new()
-        .route("/", get(index))
-        .route("/enter", get(get_enter))
-        .route("/enter", post(post_enter))
-        .route("/publish", get(get_publish))
-        .route("/publish", post(post_publish))
-        .route("/article/:id", get(get_article))
-        .route("/profile", get(get_profile))
-        .route("/profile/", get(get_profile))
-        .route("/profile/:account_name", get(get_profile))
-        .fallback(invalid_page)
-        .nest_service("/assets", asset_service)
-        .nest_service("/css", css_service)
-        .nest_service("/js", js_service)
-        .with_state(ServerState::new())
-        .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
+    let state = ServerState::new();
+
+    NormalizePathLayer::trim_trailing_slash().layer(
+        Router::new()
+            .route("/", get(index))
+            .route("/enter", get(get_enter))
+            .route("/enter", post(post_enter))
+            .route("/publish", get(get_publish))
+            .route("/publish", post(post_publish))
+            .route("/article/:id", get(get_article))
+            .route("/profile", get(get_profile))
+            .route("/profile/:account_name", get(get_profile))
+            .nest("/admin", admin_routes(state.clone()))
+            .fallback(invalid_page)
+            .nest_service("/assets", asset_service)
+            .nest_service("/css", css_service)
+            .nest_service("/js", js_service)
+            .with_state(state)
+            .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http())),
+    )
 }
