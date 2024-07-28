@@ -467,3 +467,42 @@ nav {
 }
 
 /* END ARTICLE */
+
+/* START ADMIN */
+
+#admin {
+  font-family: "Roboto", "Arial", sans-serif;
+}
+
+#admin .error {
+  max-width: fit-content;
+  margin: 5px auto;
+  color: red;
+}
+
+#admin form {
+  margin: 2em 0;
+}
+
+#admin #results {
+  display: flex;
+  flex-direction: column;
+}
+
+#admin .result {
+  border: black 1px solid;
+  border-radius: 0.5em;
+  padding: 20px;
+}
+
+#admin .result h3 {
+  font-size: 16px;
+  margin-top: 0.25em;
+}
+
+#admin .result .info-wrapper {
+  display: grid;
+  grid-template: auto auto / auto auto auto;
+}
+
+/* END ADMIN */

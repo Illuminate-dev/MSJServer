@@ -1,6 +1,6 @@
 use axum::{
     extract::Request,
-    routing::{get, post, IntoMakeService},
+    routing::{get, post},
     Router, ServiceExt,
 };
 use backend::{

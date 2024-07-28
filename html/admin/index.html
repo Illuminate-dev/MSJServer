@@ -1,0 +1,16 @@
+<div id="admin">
+  <h2>Admin Panel</h2>
+  <p class="error">{error}</p>
+  <form method="get" action="/admin">
+    <label for="type">Search for a </label>
+    <select id="type" name="type">
+      <option value="User">User</option>
+      <option value="Article">Article</option>
+      <option value="Comment">Comment</option>
+    </select>
+    <label for="query">with query</label>
+    <input type="text" id="query" name="query" />
+    <input type="submit" value="Find" />
+  </form>
+  {panel}
+</div>

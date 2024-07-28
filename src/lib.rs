@@ -113,6 +113,8 @@ pub const NOT_FOUND_PAGE_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/errors/404.html"));
 pub const NOT_LOGGED_IN_PAGE_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/errors/not_logged_in.html"));
+pub const NOT_AUTHOIRZED_PAGE_TEMPLATE: Template<'static> =
+    Template::new(include_str!("../html/errors/not_authorized.html"));
 pub const INDEX_PAGE_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/index.html"));
 pub const LOGIN_PAGE_TEMPLATE: Template<'static> =
@@ -127,8 +129,8 @@ pub const ARTICLE_PAGE_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/article.html"));
 pub const PROFILE_PAGE_TEMPLATE: Template<'static> =
     Template::new(include_str!("../html/profile.html"));
-pub const NOT_AUTHOIRZED_PAGE_TEMPLATE: Template<'static> =
-    Template::new(include_str!("../html/errors/not_authorized.html"));
+pub const ADMIN_PAGE_TEMPLATE: Template<'static> =
+    Template::new(include_str!("../html/admin/index.html"));
 
 pub async fn invalid_page(State(state): State<ServerState>, jar: CookieJar) -> Html<String> {
     render_with_header(jar, state, NOT_FOUND_PAGE_TEMPLATE.into())

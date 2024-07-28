@@ -19,3 +19,4 @@
 - add editor review system & perms
 - turn authorization into middleware
 - rework the enter page system cause it's kinda weird
+- make sure usernames are case insensitive
