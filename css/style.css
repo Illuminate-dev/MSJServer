@@ -54,7 +54,7 @@ ol {
   list-style: none;
 }
 
-a.button {
+.button {
   display: block;
   background-color: black;
   color: white;
@@ -64,9 +64,26 @@ a.button {
   border: 2px solid black;
 }
 
-a.button:hover {
+.button:hover {
   background-color: white;
   color: black;
+  cursor: pointer;
+}
+
+.inverse-button {
+  display: block;
+  background-color: white;
+  color: black;
+  padding: 5px 20px;
+  font-size: 22px;
+  transition: all ease-in-out 0.1s;
+  border: 2px solid black;
+}
+
+.inverse-button:hover {
+  background-color: black;
+  color: white;
+  cursor: pointer;
 }
 
 /* START HEADER */
@@ -503,6 +520,25 @@ nav {
 #admin .result .info-wrapper {
   display: grid;
   grid-template: auto auto / auto auto auto;
+}
+
+#admin .result .edit-button {
+  width: fit-content;
+}
+
+.edit-profile .wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+.edit-profile form select {
+  font-size: inherit;
+  border-radius: 0;
+  padding: 0.2em;
+}
+
+.edit-profile .info-wrapper form input[type="submit"] {
+  font-size: 1.25em;
 }
 
 /* END ADMIN */

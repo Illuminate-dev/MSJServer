@@ -145,12 +145,19 @@ pub enum Perms {
 
 impl Perms {
     pub fn as_string(&self) -> String {
+        self.as_str().to_string()
+    }
+
+    pub fn as_str(&self) -> &str {
         match self {
             Self::Admin => "Admin",
             Self::Editor => "Editor",
             Self::User => "User",
         }
-        .to_string()
+    }
+
+    pub fn iter() -> impl Iterator<Item = Self> {
+        [Self::Admin, Self::Editor, Self::User].iter().copied()
     }
 }
 

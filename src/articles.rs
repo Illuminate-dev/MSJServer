@@ -16,37 +16,6 @@ pub struct Article {
     pub uuid: Uuid,
 }
 
-fn format_for_description(s: &str) -> String {
-    let mut result = String::new();
-    let mut iter = s.chars().take(100);
-
-    while let Some(char) = iter.next() {
-        match char {
-            // '\\' => {
-            //     iter.next();
-            // }
-            '<' => {
-                #[allow(clippy::while_let_on_iterator)]
-                while let Some(char) = iter.next() {
-                    // if char == '\\' {
-                    //     iter.next();
-                    // }
-                    if char == '>' {
-                        break;
-                    }
-                }
-
-                // result.push_str("<br />");
-            }
-            _ => {
-                result.push(char);
-            }
-        }
-    }
-
-    result + "..."
-}
-
 impl Article {
     pub fn create_new(title: String, content: String, author: String) -> Self {
         let uuid = Uuid::new_v4();
@@ -115,9 +84,40 @@ impl Article {
             "http://via.placeholder.com/640x360",
             self.title,
             self.author,
-            format_for_description(&self.content),
+            Self::format_for_description(&self.content),
             self.created_at.format("%B %e, %Y")
         )
+    }
+
+    pub fn format_for_description(s: &str) -> String {
+        let mut result = String::new();
+        let mut iter = s.chars().take(100);
+
+        while let Some(char) = iter.next() {
+            match char {
+                // '\\' => {
+                //     iter.next();
+                // }
+                '<' => {
+                    #[allow(clippy::while_let_on_iterator)]
+                    while let Some(char) = iter.next() {
+                        // if char == '\\' {
+                        //     iter.next();
+                        // }
+                        if char == '>' {
+                            break;
+                        }
+                    }
+
+                    // result.push_str("<br />");
+                }
+                _ => {
+                    result.push(char);
+                }
+            }
+        }
+
+        result + "..."
     }
 }
 

@@ -1,0 +1,37 @@
+<div id="profile" class="edit-profile">
+  <!--ACCOUNT NAME-->
+  <p class="error">{error}</p>
+  <h2>Username: {username}</h2>
+  <div class="wrapper">
+    <div class="left">
+      <div class="info-wrapper">
+        <form action="/admin/profile/{username}" method="post">
+          <p>Email: <span class="info">{email}</span></p>
+          <label for="rank">Rank:</label>
+          <select name="rank">
+            <option value="Admin" {?admin_selected selected | }>Admin</option>
+            <option value="Editor" {?editor_selected selected | }>
+              Editor
+            </option>
+            <option value="User" {?user_selected selected | }>User</option>
+          </select>
+          <p>Created on <span class="info">{created_at}</span></p>
+          <p>Articles published: <span class="info">{article_count}</span></p>
+          <p>Comments posted: <span class="info">{comment_count}</span></p>
+          <p>Karma: <span class="info">{karma}</span></p>
+          <input type="hidden" name="action" value="Edit" />
+          <input type="submit" value="Confirm Edits" class="inverse-button" />
+        </form>
+      </div>
+    </div>
+    <div class="right">
+      <form action="/admin/profile/{username}" method="post">
+        <input type="hidden" name="action" value="Delete" />
+        <input type="submit" value="Delete" class="button" />
+      </form>
+    </div>
+  </div>
+  <!--AUTHORED ARTICLES-->
+
+  <div id="authored-articles">{articles}</div>
+</div>
