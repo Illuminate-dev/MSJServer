@@ -86,6 +86,44 @@ ol {
   cursor: pointer;
 }
 
+.article-small {
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 5px;
+  display: flex;
+  gap: 10px;
+}
+
+.article-small img {
+  width: 25%;
+}
+
+.article-small-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.article-small .article-title {
+  display: block;
+  width: 100%;
+  margin: 5px auto 0px;
+  color: black;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: bold;
+  /* padding: 10px; */
+  /* border: 1px solid black; */
+  /* transition: all ease-in-out 0.1s; */
+}
+
+.article-small .article-author {
+  font-size: 12px;
+  color: #444444;
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
 /* START HEADER */
 
 h1 {
@@ -330,44 +368,6 @@ nav {
   font-weight: bold;
 }
 
-#profile .article-small {
-  border: 1px solid black;
-  border-radius: 5px;
-  padding: 5px;
-  display: flex;
-  gap: 10px;
-}
-
-#profile .article-small img {
-  width: 25%;
-}
-
-#profile .article-small-info {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-#profile .article-title {
-  display: block;
-  width: 100%;
-  margin: 5px auto 0px;
-  color: black;
-  text-decoration: none;
-  font-size: 16px;
-  font-weight: bold;
-  /* padding: 10px; */
-  /* border: 1px solid black; */
-  /* transition: all ease-in-out 0.1s; */
-}
-
-#profile .article-author {
-  font-size: 12px;
-  color: #444444;
-  margin-top: 0;
-  margin-bottom: 10px;
-}
-
 /* END PROFILE */
 
 /* START HOME  */
@@ -382,44 +382,6 @@ nav {
   font-size: 36px;
   max-width: fit-content;
   margin: 15px auto;
-}
-
-#home .article-small {
-  border: 1px solid black;
-  border-radius: 5px;
-  padding: 5px;
-  display: flex;
-  gap: 10px;
-}
-
-#home .article-small img {
-  width: 25%;
-}
-
-#home .article-small-info {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-#home .article-title {
-  display: block;
-  width: 100%;
-  margin: 5px auto 0px;
-  color: black;
-  text-decoration: none;
-  font-size: 16px;
-  font-weight: bold;
-  /* padding: 10px; */
-  /* border: 1px solid black; */
-  /* transition: all ease-in-out 0.1s; */
-}
-
-#home .article-author {
-  font-size: 12px;
-  color: #444444;
-  margin-top: 0;
-  margin-bottom: 10px;
 }
 
 /* END HOME */
@@ -539,6 +501,16 @@ nav {
 
 .edit-profile .info-wrapper form input[type="submit"] {
   font-size: 1.25em;
+}
+
+#publish.edit-article .delete {
+  color: red;
+  border-color: red;
+}
+
+#publish.edit-article .delete:hover {
+  color: white;
+  background-color: red;
 }
 
 /* END ADMIN */

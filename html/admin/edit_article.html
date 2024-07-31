@@ -2,22 +2,35 @@
   rel="stylesheet"
   href="https://cdn.ckeditor.com/ckeditor5/42.0.1/ckeditor5.css"
 />
-<div id="publish">
-  <h2>Send in an article for publication!</h2>
+<div id="publish" class="edit-article">
+  <h2>Edit "{title}"</h2>
+  <h3>Uuid: "{uuid}"</h3>
   <p class="error">{error}</p>
-  <form method="post" action="/publish" id="publishForm">
+  <form method="post" action="/admin/article/{uuid}" id="publishForm">
     <div id="title-section" class="section">
       <label for="title">Title:</label><br />
-      <input type="text" name="title" required maxlength="100" /><br />
+      <input
+        type="text"
+        name="title"
+        required
+        maxlength="100"
+        value="{title}"
+      /><br />
     </div>
     <div id="content-section" class="section">
       <label for="content">Content:</label><br />
       <input type="hidden" name="content" id="content" />
       <!-- <textarea name="content" required rows="30"></textarea><br /> -->
-      <div id="editor"></div>
+      <div id="editor">{content}</div>
     </div>
-    <input type="submit" value="Publish" {?logged_in | disabled } />
+    <input type="hidden" name="uuid" value="{uuid}" />
+    <input type="hidden" name="action" value="Edit" />
+    <input type="submit" value="Confirm Edits" />
   </form>
+  <form method="post" action="/admin/article/{uuid}">
+    <input type="hidden" name="action" value="Delete" />
+    <input type="hidden" name="uuid" value="{uuid}" />
+    <input type="submit" value="Delete" class="inverse-button delete"/>
 </div>
 <script type="importmap">
   {

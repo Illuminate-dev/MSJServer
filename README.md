@@ -20,3 +20,4 @@
 - turn authorization into middleware
 - rework the enter page system cause it's kinda weird
 - make sure usernames are case insensitive
+- fix search sorting (or just wait until migrating to a db)

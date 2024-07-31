@@ -30,8 +30,10 @@ impl Article {
         }
     }
 
-    fn render_content(&self) -> String {
-        self.content.replace('\n', "<br />")
+    fn article_dir() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("data")
+            .join("articles")
     }
 
     pub fn from_file(file_path: PathBuf) -> Result<Self> {
@@ -41,20 +43,21 @@ impl Article {
 
     pub fn write_to_file(&self) -> Result<()> {
         let data = bincode::serialize(self)?;
-        let file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("data")
-            .join("articles")
-            .join(format!("{}.dat", self.uuid));
+        let file_path = Self::article_dir().join(format!("{}.dat", self.uuid));
         fs::write(file_path, data)?;
+        Ok(())
+    }
+
+    pub fn delete(self) -> Result<()> {
+        let file_path = Self::article_dir().join(format!("{}.dat", self.uuid));
+
+        fs::remove_file(file_path)?;
         Ok(())
     }
 
     pub fn get_all_articles() -> Vec<Self> {
         let mut articles = Vec::new();
-        let articles_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("data")
-            .join("articles");
-        for entry in articles_dir
+        for entry in Self::article_dir()
             .read_dir()
             .expect("failed to read articles directory")
         {
@@ -63,6 +66,15 @@ impl Article {
             articles.push(Self::from_file(file_path).expect("failed to read article from file"));
         }
         articles
+    }
+
+    pub fn get_article_by_uuid(uuid: Uuid) -> Option<Self> {
+        let file_path = Self::article_dir().join(format!("{}.dat", uuid));
+        if file_path.exists() {
+            Some(Self::from_file(file_path).expect("failed to read article from file"))
+        } else {
+            None
+        }
     }
 
     pub fn render_article_small(&self) -> String {
@@ -128,15 +140,8 @@ pub async fn get_article(
 ) -> impl IntoResponse {
     println!("getting article with id: {}", id);
 
-    let file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("data")
-        .join("articles")
-        .join(format!("{}.dat", id));
-
-    if file_path.exists() {
-        let article = Article::from_file(file_path).expect("failed to read article from file");
-
-        let article_content = article.render_content();
+    if let Some(article) = Article::get_article_by_uuid(id) {
+        let article_content = article.content;
         let article_date = article.created_at.format("%B %e, %Y").to_string();
 
         let title_entry = ArgEntry::new("title", Arg::Text(article.title.as_str()));
