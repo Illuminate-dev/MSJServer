@@ -3,7 +3,8 @@ use axum::{
     routing::{get, post},
     Router, ServiceExt,
 };
-use backend::{
+use clap::Parser;
+use server::{
     admin::admin_routes,
     articles::get_article,
     enter::{get_enter, post_enter},
@@ -12,7 +13,6 @@ use backend::{
     publish::{get_publish, post_publish},
     *,
 };
-use clap::Parser;
 use std::str::FromStr;
 use std::{
     net::{IpAddr, Ipv6Addr, SocketAddr},
@@ -26,7 +26,7 @@ use tower_http::{
 };
 
 #[derive(Parser, Debug)]
-#[clap(name = "backend", about = "backend for msj website")]
+#[clap(name = "server", about = "server for msj website")]
 struct Options {
     /// log level
     #[clap(short = 'l', long = "log", default_value = "debug")]

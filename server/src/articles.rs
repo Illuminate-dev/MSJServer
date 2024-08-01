@@ -5,6 +5,12 @@ use uuid::Uuid;
 
 use crate::*;
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub enum Status {
+    Published,
+    NeedsReview,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Article {
     pub title: String,
@@ -14,6 +20,7 @@ pub struct Article {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     pub uuid: Uuid,
+    pub status: Status,
 }
 
 impl Article {
@@ -27,6 +34,7 @@ impl Article {
             created_at: Utc::now(),
             updated_at: Utc::now(),
             uuid,
+            status: Status::NeedsReview,
         }
     }
 
@@ -141,6 +149,10 @@ pub async fn get_article(
     println!("getting article with id: {}", id);
 
     if let Some(article) = Article::get_article_by_uuid(id) {
+        if article.status != Status::Published {
+            return render_with_header(jar, state, NOT_FOUND_PAGE_TEMPLATE.into());
+        }
+
         let article_content = article.content;
         let article_date = article.created_at.format("%B %e, %Y").to_string();
 

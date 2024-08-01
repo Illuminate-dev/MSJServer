@@ -3,7 +3,7 @@
 ## Development Environment
 
 `cargo install cargo-watch` <br />
-`cargo watch -- cargo run`
+`cargo watch -- cargo run -p server`
 
 ## TODO
 

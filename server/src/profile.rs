@@ -1,6 +1,6 @@
 use axum::extract::Path;
 
-use crate::*;
+use crate::{articles::Status, *};
 
 pub async fn get_profile(
     State(state): State<ServerState>,
@@ -42,7 +42,10 @@ fn render_profile(jar: CookieJar, state: ServerState, account_name: &str) -> Htm
 
     drop(accounts);
 
-    let mut articles = Article::get_all_articles();
+    let mut articles = Article::get_all_articles()
+        .into_iter()
+        .filter(|a| a.status == Status::Published)
+        .collect::<Vec<_>>();
 
     articles.sort_by(|a, b| b.created_at.cmp(&a.created_at));
 

@@ -463,6 +463,12 @@ nav {
   margin: 2em 0;
 }
 
+#admin form select {
+  font-size: inherit;
+  border-radius: 0;
+  padding: 0.2em;
+}
+
 #admin #results {
   display: flex;
   flex-direction: column;
