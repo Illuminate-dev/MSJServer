@@ -1,18 +1,53 @@
 mod account;
 mod article;
 
-use std::path::PathBuf;
-use std::{fmt::Display, fs};
+use std::{fmt::Display, fs, ops::AddAssign};
+use std::{ops::Add, path::PathBuf};
 
 use clap::{Args, Parser, Subcommand, ValueEnum};
 
 pub const PREVIOUS_VERSION: Version = Version::V0_1_0;
 pub const CURRENT_VERSION: Version = Version::V0_2_0;
+pub const VERSION_COUNT: usize = 2;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum, PartialOrd, Ord)]
 pub enum Version {
     V0_1_0,
     V0_2_0,
+}
+
+impl From<Version> for u8 {
+    fn from(value: Version) -> Self {
+        match value {
+            Version::V0_1_0 => 0,
+            Version::V0_2_0 => 1,
+        }
+    }
+}
+
+impl From<u8> for Version {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => Version::V0_1_0,
+            1 => Version::V0_2_0,
+            _ => Version::V0_2_0,
+        }
+    }
+}
+
+impl Add<u8> for Version {
+    type Output = Version;
+
+    fn add(self, rhs: u8) -> Self::Output {
+        let num: u8 = self.into();
+        (num + rhs).into()
+    }
+}
+
+impl AddAssign<u8> for Version {
+    fn add_assign(&mut self, rhs: u8) {
+        *self = *self + rhs
+    }
 }
 
 impl Display for Version {
