@@ -7,6 +7,7 @@ use clap::Parser;
 use server::{
     admin::admin_routes,
     articles::get_article,
+    editor::editor_routes,
     enter::{get_enter, post_enter},
     home::index,
     profile::get_profile,
@@ -93,6 +94,7 @@ fn app() -> NormalizePath<Router> {
             .route("/profile", get(get_profile))
             .route("/profile/:account_name", get(get_profile))
             .nest("/admin", admin_routes(state.clone()))
+            .nest("/editor", editor_routes(state.clone()))
             .fallback(invalid_page)
             .nest_service("/assets", asset_service)
             .nest_service("/css", css_service)

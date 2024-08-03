@@ -49,7 +49,7 @@ pub async fn post_publish(
     let content = form.content.trim().to_string();
 
     if let Some(account_name) = get_logged_in(&state, &jar) {
-        let article = Article::create_new(title, content, account_name);
+        let mut article = Article::create_new(title, content, account_name);
         article.write_to_file().expect("failed to save file");
 
         Ok(Redirect::to("/"))

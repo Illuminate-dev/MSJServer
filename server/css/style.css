@@ -520,3 +520,11 @@ nav {
 }
 
 /* END ADMIN */
+
+/* START EDITOR */
+
+#editor {
+  font-family: "Roboto", "Arial", sans-serif;
+}
+
+/* END EDITOR */

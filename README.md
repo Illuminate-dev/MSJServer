@@ -21,3 +21,4 @@
 - rework the enter page system cause it's kinda weird
 - make sure usernames are case insensitive
 - fix search sorting (or just wait until migrating to a db)
+- add admin ability to change publication status of articles

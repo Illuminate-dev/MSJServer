@@ -49,7 +49,8 @@ impl Article {
         bincode::deserialize(data.as_slice()).map_err(Into::into)
     }
 
-    pub fn write_to_file(&self) -> Result<()> {
+    pub fn write_to_file(&mut self) -> Result<()> {
+        self.updated_at = Utc::now();
         let data = bincode::serialize(self)?;
         let file_path = Self::article_dir().join(format!("{}.dat", self.uuid));
         fs::write(file_path, data)?;
@@ -154,7 +155,7 @@ pub async fn get_article(
         }
 
         let article_content = article.content;
-        let article_date = article.created_at.format("%B %e, %Y").to_string();
+        let article_date = article.updated_at.format("%B %e, %Y").to_string();
 
         let title_entry = ArgEntry::new("title", Arg::Text(article.title.as_str()));
         let author_entry = ArgEntry::new("author", Arg::Text(article.author.as_str()));

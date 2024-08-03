@@ -1,5 +1,6 @@
 pub mod admin;
 pub mod articles;
+pub mod editor;
 pub mod enter;
 pub mod home;
 pub mod profile;
@@ -136,11 +137,11 @@ pub async fn invalid_page(State(state): State<ServerState>, jar: CookieJar) -> H
     render_with_header(jar, state, NOT_FOUND_PAGE_TEMPLATE.into())
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum Perms {
-    Admin,
-    Editor,
-    User,
+    Admin = 2,
+    Editor = 1,
+    User = 0,
 }
 
 impl Perms {

@@ -1,0 +1,41 @@
+<link
+  rel="stylesheet"
+  href="https://cdn.ckeditor.com/ckeditor5/42.0.1/ckeditor5.css"
+/>
+<div id="publish" class="edit-article">
+  <h2>Edit "{title}"</h2>
+  <h3>Uuid: "{uuid}"</h3>
+  <p class="error">{error}</p>
+  <form method="post" action="/editor/article/{uuid}" id="publishForm">
+    <div id="title-section" class="section">
+      <label for="title">Title:</label><br />
+      <input
+        type="text"
+        name="title"
+        required
+        maxlength="100"
+        value="{title}"
+      /><br />
+    </div>
+    <div id="content-section" class="section">
+      <label for="content">Content:</label><br />
+      <input type="hidden" name="content" id="content" />
+      <!-- <textarea name="content" required rows="30"></textarea><br /> -->
+      <div id="editor">{content}</div>
+    </div>
+    <input type="hidden" name="uuid" value="{uuid}" />
+    <input type="submit" value="Confirm Edits" />
+  </form>
+  <form method="post" action="/editor/publish">
+    <input type="hidden" name="uuid" value="{uuid}" />
+    <input type="submit" value="Approve" class="inverse-button"/>
+</div>
+<script type="importmap">
+  {
+    "imports": {
+      "ckeditor5": "https://cdn.ckeditor.com/ckeditor5/42.0.1/ckeditor5.js",
+      "ckeditor5/": "https://cdn.ckeditor.com/ckeditor5/42.0.1/"
+    }
+  }
+</script>
+<script src="/js/editor.js" type="module"></script>
