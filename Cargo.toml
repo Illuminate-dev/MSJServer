@@ -1,3 +1,3 @@
 [workspace]
 resolver = "2"
-members = ["migrate_data", "server"]
+members = [ "edit_data","migrate_data", "server"]

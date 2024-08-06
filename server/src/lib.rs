@@ -162,6 +162,19 @@ impl Perms {
     }
 }
 
+impl TryFrom<&str> for Perms {
+    type Error = ();
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value.to_lowercase().as_str() {
+            "admin" => Ok(Self::Admin),
+            "editor" => Ok(Self::Editor),
+            "user" => Ok(Self::User),
+            _ => Err(()),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Account {
     pub username: String,
